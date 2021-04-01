@@ -36,16 +36,25 @@ class GhostController(Controller):
         self.next_tile = None
         self.next_direction = None
 
-        # self.mode in {'inactive', 'home', 'active'}
-        self.mode = 'inactive'
+        # self.state in {'inactive', 'home', 'active'}
+        self.state = 'inactive'
+        # self.mode in {'scatter', 'chase', 'fright'}
+        self.mode = self.game_state.mode()
 
     def control(self) -> None:
-        if self.mode == 'active':
+        if self.state == 'active':
+            game_mode = self.game_state.mode()
+            if self.mode != game_mode:
+                self.next_tile = None
+                self.next_direction = None
+                self.actor.direction = DEFAULT_DIR
+                self.mode = game_mode
+
             self.control_active()
-        elif self.mode == 'home':
+        elif self.state == 'home':
             self.control_home()
-        elif self.mode == 'inactive' and self.check_active():
-            self.mode = 'home'
+        elif self.state == 'inactive' and self.check_active():
+            self.state = 'home'
 
     def control_active(self) -> None:
         tile = self.actor.tile()
@@ -54,7 +63,7 @@ class GhostController(Controller):
 
         self.actor.change_direction(self.game_state.grid, self.next_direction)
         if self.next_tile is None:
-            self.next_tile = tile + self.actor.direction
+            self.next_tile = tile
         else:
             self.next_tile = tile + self.next_direction
 
@@ -82,7 +91,7 @@ class GhostController(Controller):
         actor_pos = self.actor.position
 
         if actor_pos == DEFAULT_POS:
-            self.mode = 'active'
+            self.state = 'active'
         elif actor_pos.x == DEFAULT_POS.x:
             self.actor.position.lerp(DEFAULT_POS, self.actor.speed)
         else:
@@ -93,7 +102,7 @@ class GhostController(Controller):
         self.next_direction = None
 
     def draw_debug(self) -> None:
-        if self.mode != 'active' or self.next_tile is None:
+        if self.state != 'active' or self.next_tile is None:
             return
 
         next_position = self.next_tile * TILE_SIZE
@@ -121,7 +130,7 @@ class GhostController(Controller):
 class BlinkyController(GhostController):
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
-        self.mode = 'active'
+        self.state = 'active'
 
     def scatter_target(self) -> Vector:
         return Vector(25, 0)
@@ -133,11 +142,11 @@ class BlinkyController(GhostController):
 class PinkyController(GhostController):
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
-        self.mode = 'home'
+        self.state = 'home'
 
     def reset(self) -> None:
         super().reset()
-        self.mode = 'inactive'
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(2, 0)
@@ -161,11 +170,11 @@ class PinkyController(GhostController):
 class InkyController(GhostController):
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
-        self.mode = 'inactive'
+        self.state = 'inactive'
 
     def reset(self) -> None:
         super().reset()
-        self.mode = 'inactive'
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(27, 35)
@@ -187,11 +196,11 @@ class InkyController(GhostController):
 class ClydeController(GhostController):
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
-        self.mode = 'inactive'
+        self.state = 'inactive'
 
     def reset(self) -> None:
         super().reset()
-        self.mode = 'inactive'
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(0, 35)
