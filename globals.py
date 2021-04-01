@@ -7,7 +7,7 @@ GRID_SIZE = Vector(28, 36)
 SCREEN_SIZE = TILE_SIZE * GRID_SIZE
 
 DEFAULT_POS = Vector(14, 26) * TILE_SIZE - (TILE_SIZE.x / 2, 0)
-DIRECTION_ORDER = [pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]
+DIRECTION_ORDER = (pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT)
 DIRECTION = {pygame.K_UP: Vector(0, -1),
              pygame.K_LEFT: Vector(-1, 0),
              pygame.K_DOWN: Vector(0, 1),
@@ -19,12 +19,12 @@ CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3/ 8),
 DEFAULT_SPEED = 2.0
 
 # Colours
-YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
-PINK = (255, 100, 100)
-TEAL = (100, 100, 255)
-ORANGE = (255, 200, 0)
-GHOST_COLOURS = [RED, PINK, TEAL, ORANGE]
+YELLOW = (253, 255, 0)
+RED = (208, 62, 25)
+PINK = (234, 130, 229)
+TEAL = (70, 191, 238)
+ORANGE = (219, 133, 28)
+GHOST_COLOURS = (RED, PINK, TEAL, ORANGE)
 
 # Tile Types
 EMPTY = '0'

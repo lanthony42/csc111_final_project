@@ -33,6 +33,8 @@ class GhostController(Controller):
         self.next_tile = None
         self.next_direction = None
 
+        self.mode = None
+
     def control(self) -> None:
         tile = self.actor.tile()
         if self.next_tile is not None and tile != self.next_tile:
@@ -64,5 +66,36 @@ class GhostController(Controller):
         pygame.draw.rect(self.game_state.screen, (0, 100, 0),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
+        target_position = self.target() * TILE_SIZE
+        pygame.draw.rect(self.game_state.screen, (0, 100, 100),
+                         pygame.Rect(*target_position, *TILE_SIZE))
+
+    def target(self) -> Vector:
+        raise NotImplementedError
+
+
+class BlinkyController(GhostController):
     def target(self) -> Vector:
         return self.game_state.player.tile()
+
+
+class PinkyController(GhostController):
+    def target(self) -> Vector:
+        # Note the original bug with Pinky's targeting is not kept for simplicity
+        player = self.game_state.player
+        return player.tile() + 4 * player.direction
+
+
+class InkyController(GhostController):
+    def target(self) -> Vector:
+        return self.game_state.player.tile()
+
+
+class ClydeController(GhostController):
+    def target(self) -> Vector:
+        player_tile = self.game_state.player.tile()
+
+        if grid_distance(self.actor.tile(), player_tile) > 8:
+            return player_tile
+        else:
+            return Vector(0, 35)

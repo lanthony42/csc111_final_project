@@ -35,9 +35,12 @@ class Game:
             visual: bool = True) -> int:
         # Reinitialize
         self.player = Actor()
-        self.ghosts = [Actor(colour=GHOST_COLOURS[i], cornering=False) for i in range(1)]
+        self.ghosts = [Actor(colour=colour, cornering=False) for colour in GHOST_COLOURS]
         self.controls = [controls.InputController(self, self.player),
-                         controls.GhostController(self, self.ghosts[0])]
+                         controls.BlinkyController(self, self.ghosts[0]),
+                         controls.PinkyController(self, self.ghosts[1]),
+                         controls.InkyController(self, self.ghosts[2]),
+                         controls.ClydeController(self, self.ghosts[3])]
 
         self.events = None
         self.score = 0
