@@ -33,10 +33,14 @@ class GhostController(Controller):
         self.next_tile = None
         self.next_direction = None
 
-        # self.mode in {'inactive', 'chase', 'scatter', 'fright'}
-        self.mode = None
+        # self.mode in {'inactive', 'home', 'active'}
+        self.mode = 'active'
 
     def control(self) -> None:
+        if self.mode == 'active':
+            self.control_active()
+
+    def control_active(self) -> None:
         tile = self.actor.tile()
         if self.next_tile is not None and tile != self.next_tile:
             return
@@ -49,12 +53,13 @@ class GhostController(Controller):
 
         self.next_direction = -self.actor.direction
         best_distance = None
+
         for key in DIRECTION_ORDER:
             direction = DIRECTION[key]
             candidate = self.next_tile + direction
 
             if not within_grid(candidate) or candidate == self.actor.tile() or \
-                self.game_state.grid[candidate.y][candidate.x] == WALL:
+                    self.game_state.grid[candidate.y][candidate.x] in self.actor.bad_tiles():
                 continue
 
             if self.game_state.mode() == 'scatter':
@@ -75,6 +80,7 @@ class GhostController(Controller):
             target_position = self.scatter_target() * TILE_SIZE
         elif self.game_state.mode() == 'chase':
             target_position = self.chase_target() * TILE_SIZE
+
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
                          pygame.Rect(*target_position, *TILE_SIZE))
 

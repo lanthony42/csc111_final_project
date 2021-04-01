@@ -29,7 +29,7 @@ class Game:
 
         # Round variables
         self.mode_ind = 0
-        self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
+        self.round_timer = ROUND_PATTERN[self.mode_ind][0]
 
         # Load the map
         with open(map) as csv_file:
@@ -43,7 +43,8 @@ class Game:
             lives: int = DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
         # Reinitialize
         self.player = Actor(position=PLAYER_POS, direction=PLAYER_DIR, speed=PLAYER_SPEED)
-        self.ghosts = [Actor(colour=colour, cornering=False) for colour in GHOST_COLOURS]
+        self.ghosts = [Actor(position=position, colour=colour, cornering=False)
+                       for position, colour in zip(GHOST_POS, GHOST_COLOURS)]
         self.controls = [controls.InputController(self, self.player),
                          controls.BlinkyController(self, self.ghosts[0]),
                          controls.PinkyController(self, self.ghosts[1]),
@@ -57,7 +58,7 @@ class Game:
 
         # Round variables
         self.mode_ind = 0
-        self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
+        self.round_timer = ROUND_PATTERN[self.mode_ind][0]
 
         if visual and not pygame.display.get_init():
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
@@ -96,7 +97,7 @@ class Game:
         if self.round_timer is not None:
             if self.round_timer <= 0:
                 self.mode_ind += 1
-                self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
+                self.round_timer = ROUND_PATTERN[self.mode_ind][0]
             else:
                 self.round_timer -= 1
 
@@ -110,7 +111,8 @@ class Game:
             ghost.update(self.grid)
 
             if self.player.rect().colliderect(ghost.rect()):
-                self.lives -= 1
+                pass
+                # self.lives -= 1
 
         # Tile collisions
         tile = self.player.tile()
@@ -147,6 +149,8 @@ class Game:
 
         if tile == WALL:
             pygame.draw.rect(self.screen, (0, 0, 255), pygame.Rect(*position, *TILE_SIZE))
+        elif tile == DOOR:
+            pygame.draw.rect(self.screen, (255, 150, 200), pygame.Rect(*position, *TILE_SIZE))
         elif tile == DOT:
             pygame.draw.circle(self.screen, (200, 200, 150),
                                (position + TILE_SIZE / 2).tuple(), 2)
@@ -173,6 +177,7 @@ class Actor:
         self._queued_direction = None
 
         self.cornering = cornering
+        self.allow_door = False
         self.colour = colour
         self.speed = speed
 
@@ -181,6 +186,12 @@ class Actor:
 
     def rect(self) -> pygame.Rect:
         return pygame.Rect(*self.position, *TILE_SIZE)
+
+    def bad_tiles(self) -> set[str]:
+        if self.allow_door:
+            return {WALL, OUT}
+        else:
+            return {WALL, DOOR, OUT}
 
     def change_direction(self, grid: list[list[int]], direction: Vector) -> None:
         if direction in DIRECTION.values():
@@ -204,8 +215,8 @@ class Actor:
                 within_cornering = True
             same_axis = abs(self.direction.x) == abs(direction.x)
 
-            if within_grid(next_tile) and grid[next_tile.y][next_tile.x] != WALL and \
-                    (within_cornering or same_axis):
+            if within_grid(next_tile) and (within_cornering or same_axis) and \
+                    grid[next_tile.y][next_tile.x] not in self.bad_tiles():
                 self.direction = direction
                 self._queued_direction = None
             else:
@@ -218,7 +229,7 @@ class Actor:
         tile = self.tile()
         next_tile = self.tile() + self.direction
 
-        if not within_grid(next_tile) or grid[next_tile.y][next_tile.x] == WALL:
+        if not within_grid(next_tile) or grid[next_tile.y][next_tile.x] in self.bad_tiles():
             next_tile = tile
 
         if self.direction.y != 0:
