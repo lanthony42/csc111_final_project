@@ -6,7 +6,8 @@ TILE_SIZE = Vector(16, 16)
 GRID_SIZE = Vector(28, 36)
 SCREEN_SIZE = TILE_SIZE * GRID_SIZE
 
-DEFAULT_POS = Vector(14, 26) * TILE_SIZE - (TILE_SIZE.x / 2, 0)
+DEFAULT_POS = Vector(14, 14) * TILE_SIZE - (TILE_SIZE.x / 2, 0)
+PLAYER_POS = Vector(14, 26) * TILE_SIZE - (TILE_SIZE.x / 2, 0)
 DIRECTION_ORDER = (pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT)
 DIRECTION = {pygame.K_UP: Vector(0, -1),
              pygame.K_LEFT: Vector(-1, 0),
@@ -16,7 +17,10 @@ CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3/ 8),
           (-1, 0): (-TILE_SIZE.x / 8, TILE_SIZE.x * 3 / 8),
           (0, 1): (-TILE_SIZE.y * 3 / 8, TILE_SIZE.y / 8),
           (1, 0): (-TILE_SIZE.x * 3 / 8, TILE_SIZE.x / 8)}
-DEFAULT_SPEED = 2.0
+DEFAULT_DIR = Vector(0, 0)
+PLAYER_DIR = DIRECTION[pygame.K_LEFT]
+DEFAULT_SPEED = 4.0
+PLAYER_SPEED = 4.5
 
 # Colours
 YELLOW = (253, 255, 0)
@@ -35,4 +39,11 @@ OUT = '9'
 
 DOT_SCORE = 10
 BOOST_SCORE = 50
+DEFAULT_LIVES = 3
 FPS = 24
+
+# Round Timings
+ROUND_PATTERN = ((7, 'scatter'), (20, 'chase'),
+                 (7, 'scatter'), (20, 'chase'),
+                 (5, 'scatter'), (20, 'chase'),
+                 (5, 'scatter'), (None, 'chase'))

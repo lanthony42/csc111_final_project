@@ -33,6 +33,7 @@ class GhostController(Controller):
         self.next_tile = None
         self.next_direction = None
 
+        # self.mode in {'inactive', 'chase', 'scatter', 'fright'}
         self.mode = None
 
     def control(self) -> None:
@@ -56,7 +57,11 @@ class GhostController(Controller):
                 self.game_state.grid[candidate.y][candidate.x] == WALL:
                 continue
 
-            distance = grid_distance(candidate, self.target())
+            if self.game_state.mode() == 'scatter':
+                distance = grid_distance(candidate, self.scatter_target())
+            elif self.game_state.mode() == 'chase':
+                distance = grid_distance(candidate, self.chase_target())
+
             if best_distance is None or distance < best_distance:
                 self.next_direction = direction
                 best_distance = distance
@@ -66,33 +71,54 @@ class GhostController(Controller):
         pygame.draw.rect(self.game_state.screen, (0, 100, 0),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
-        target_position = self.target() * TILE_SIZE
+        if self.game_state.mode() == 'scatter':
+            target_position = self.scatter_target() * TILE_SIZE
+        elif self.game_state.mode() == 'chase':
+            target_position = self.chase_target() * TILE_SIZE
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
                          pygame.Rect(*target_position, *TILE_SIZE))
 
-    def target(self) -> Vector:
+    def scatter_target(self) -> Vector:
+        raise NotImplementedError
+
+    def chase_target(self) -> Vector:
         raise NotImplementedError
 
 
 class BlinkyController(GhostController):
-    def target(self) -> Vector:
+    def scatter_target(self) -> Vector:
+        return Vector(25, 0)
+
+    def chase_target(self) -> Vector:
         return self.game_state.player.tile()
 
 
 class PinkyController(GhostController):
-    def target(self) -> Vector:
+    def scatter_target(self) -> Vector:
+        return Vector(2, 0)
+
+    def chase_target(self) -> Vector:
         # Note the original bug with Pinky's targeting is not kept for simplicity
         player = self.game_state.player
         return player.tile() + 4 * player.direction
 
 
 class InkyController(GhostController):
-    def target(self) -> Vector:
-        return self.game_state.player.tile()
+    def scatter_target(self) -> Vector:
+        return Vector(27, 35)
+
+    def chase_target(self) -> Vector:
+        player = self.game_state.player
+        pivot = player.tile() + 2 * player.direction
+
+        return pivot - (self.game_state.ghosts[0].tile() - pivot)
 
 
 class ClydeController(GhostController):
-    def target(self) -> Vector:
+    def scatter_target(self) -> Vector:
+        return Vector(0, 35)
+
+    def chase_target(self) -> Vector:
         player_tile = self.game_state.player.tile()
 
         if grid_distance(self.actor.tile(), player_tile) > 8:

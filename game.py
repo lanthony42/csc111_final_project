@@ -24,17 +24,25 @@ class Game:
         self.ghosts = []
 
         self.game_over = False
+        self.lives = 0
         self.score = 0
+
+        # Round variables
+        self.mode_ind = 0
+        self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
 
         # Load the map
         with open(map) as csv_file:
             reader = csv.reader(csv_file)
             self.grid = list(reader)
 
+    def mode(self) -> str:
+        return ROUND_PATTERN[self.mode_ind][1]
+
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
-            visual: bool = True) -> int:
+            lives: int = DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
         # Reinitialize
-        self.player = Actor()
+        self.player = Actor(position=PLAYER_POS, direction=PLAYER_DIR, speed=PLAYER_SPEED)
         self.ghosts = [Actor(colour=colour, cornering=False) for colour in GHOST_COLOURS]
         self.controls = [controls.InputController(self, self.player),
                          controls.BlinkyController(self, self.ghosts[0]),
@@ -43,7 +51,13 @@ class Game:
                          controls.ClydeController(self, self.ghosts[3])]
 
         self.events = None
+        self.game_over = False
+        self.lives = lives
         self.score = 0
+
+        # Round variables
+        self.mode_ind = 0
+        self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
 
         if visual and not pygame.display.get_init():
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
@@ -58,10 +72,10 @@ class Game:
             self.update()
 
             if visual:
-                self.draw()
+                self.draw(debug)
                 self.clock.tick(FPS)
 
-        return self.score
+        return (self.check_win(), self.score)
 
     def handle_input(self) -> bool:
         if not pygame.display.get_init():
@@ -78,13 +92,27 @@ class Game:
         return False
 
     def update(self) -> None:
+        # Update round pattern
+        if self.round_timer is not None:
+            if self.round_timer <= 0:
+                self.mode_ind += 1
+                self.round_timer = ROUND_PATTERN[self.mode_ind][0] * FPS
+            else:
+                self.round_timer -= 1
+
+        # Control actors
         for control in self.controls:
             control.control()
 
+        # Update actors
         self.player.update(self.grid)
         for ghost in self.ghosts:
             ghost.update(self.grid)
 
+            if self.player.rect().colliderect(ghost.rect()):
+                self.lives -= 1
+
+        # Tile collisions
         tile = self.player.tile()
         if self.grid[tile.y][tile.x] == DOT:
             self.grid[tile.y][tile.x] = EMPTY
@@ -93,23 +121,28 @@ class Game:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += BOOST_SCORE
 
-    def draw(self) -> None:
+        # Check win and lose conditions
+        if self.check_win() or self.lives <= 0:
+            self.game_over = True
+
+    def draw(self, debug: bool = False) -> None:
         self.screen.fill((0, 0, 0))
 
-        for control in self.controls:
-            control.draw_debug()
-
-        for ghost in self.ghosts:
-            ghost.draw(self.screen)
-        self.player.draw(self.screen)
+        if debug:
+            for control in self.controls:
+                control.draw_debug()
 
         for y, row in enumerate(self.grid):
             for x, tile in enumerate(row):
-                self.draw_tile(tile, x, y)
+                self.draw_tile(tile, x, y, debug)
+
+        for ghost in self.ghosts:
+            ghost.draw(self.screen, debug)
+        self.player.draw(self.screen, debug)
 
         pygame.display.update()
 
-    def draw_tile(self, tile: str, x: int, y: int) -> None:
+    def draw_tile(self, tile: str, x: int, y: int, debug: bool = False) -> None:
         position = TILE_SIZE * (x, y)
 
         if tile == WALL:
@@ -121,8 +154,13 @@ class Game:
             pygame.draw.circle(self.screen, (220, 220, 220),
                                (position + TILE_SIZE / 2).tuple(), 5)
 
-        pygame.draw.rect(self.screen, (100, 100, 100), pygame.Rect(*position, *TILE_SIZE),
-                         width=1)
+        if debug:
+            pygame.draw.rect(self.screen, (100, 100, 100),
+                             pygame.Rect(*position, *TILE_SIZE),
+                             width=1)
+
+    def check_win(self) -> None:
+        return not any(tile in {DOT, BOOST} for row in self.grid for tile in row)
 
 
 class Actor:
@@ -131,6 +169,7 @@ class Actor:
                  cornering: bool = True) -> None:
         self.position = copy(position)
         self.direction = direction
+        self._home_position = position
         self._queued_direction = None
 
         self.cornering = cornering
@@ -191,11 +230,12 @@ class Actor:
 
         self.position.lerp(target, self.speed)
 
-    def draw(self, screen: pygame.Surface) -> None:
-        tile_position = self.tile() * TILE_SIZE
-        pygame.draw.rect(screen, (100, 100, 0), pygame.Rect(*tile_position, *TILE_SIZE))
+    def draw(self, screen: pygame.Surface, debug: bool = False) -> None:
+        if debug:
+            tile_position = self.tile() * TILE_SIZE
+            pygame.draw.rect(screen, (100, 100, 0), pygame.Rect(*tile_position, *TILE_SIZE))
 
-        next_position = (self.tile() + self.direction) * TILE_SIZE
-        pygame.draw.rect(screen, (100, 0, 0), pygame.Rect(*next_position, *TILE_SIZE))
+            next_position = (self.tile() + self.direction) * TILE_SIZE
+            pygame.draw.rect(screen, (100, 0, 0), pygame.Rect(*next_position, *TILE_SIZE))
 
         pygame.draw.rect(screen, self.colour, self.rect())
