@@ -4,8 +4,7 @@ import pygame
 
 if __name__ == '__main__':
     g = game.Game('map.csv')
-    g.run(debug=True)
-    g.run(debug=False)
+    print(g.run(lives=100, debug=True))
 
     pygame.display.quit()
     pygame.quit()

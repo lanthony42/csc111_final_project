@@ -19,6 +19,9 @@ class Controller:
 
 class InputController(Controller):
     def control(self) -> None:
+        if self.game_state.events is None:
+            return
+
         for event in self.game_state.events:
             if event.type == pygame.KEYDOWN:
                 self.actor.change_direction(self.game_state.grid, DIRECTION.get(event.key))

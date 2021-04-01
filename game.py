@@ -2,6 +2,7 @@
 TODO:
     - Boosts / Frightened
     - No-Up Zones
+    - Ghosts Timer
 """
 import pygame
 import controls
@@ -271,6 +272,7 @@ class Actor:
     def reset(self) -> None:
         self.position = copy(self._default_position)
         self.direction = self._default_direction
+        self._queued_direction = None
 
     def draw(self, screen: pygame.Surface, debug: bool = False) -> None:
         if debug:
