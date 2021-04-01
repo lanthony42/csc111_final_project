@@ -2,11 +2,13 @@ from helpers import Vector
 import pygame
 
 
+# Game Size Constants
 TILE_SIZE = Vector(16, 16)
 TILE_CENTER_X = Vector(TILE_SIZE.x / 2, 0)
 GRID_SIZE = Vector(28, 36)
 SCREEN_SIZE = TILE_SIZE * GRID_SIZE
 
+# Positioning Constants
 DEFAULT_POS = Vector(14, 14) * TILE_SIZE - TILE_CENTER_X
 PLAYER_POS = Vector(14, 26) * TILE_SIZE - TILE_CENTER_X
 GHOST_POS = (DEFAULT_POS,
@@ -14,6 +16,7 @@ GHOST_POS = (DEFAULT_POS,
              Vector(12, 17) * TILE_SIZE - TILE_CENTER_X,
              Vector(16, 17) * TILE_SIZE - TILE_CENTER_X)
 
+# Movement Constants
 DIRECTION_ORDER = (pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT)
 DIRECTION = {pygame.K_UP: Vector(0, -1),
              pygame.K_LEFT: Vector(-1, 0),
@@ -23,6 +26,7 @@ CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3/ 8),
           (-1, 0): (-TILE_SIZE.x / 8, TILE_SIZE.x * 3 / 8),
           (0, 1): (-TILE_SIZE.y * 3 / 8, TILE_SIZE.y / 8),
           (1, 0): (-TILE_SIZE.x * 3 / 8, TILE_SIZE.x / 8)}
+
 DEFAULT_DIR = Vector(0, 0)
 PLAYER_DIR = DIRECTION[pygame.K_LEFT]
 DEFAULT_SPEED = 4.0
@@ -45,6 +49,7 @@ DOOR = '8'
 OUT = '9'
 BAD_TILES = {WALL, DOOR, OUT}
 
+# Misc. Game Constants
 DOT_SCORE = 10
 BOOST_SCORE = 50
 DEFAULT_LIVES = 3

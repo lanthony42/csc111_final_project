@@ -3,6 +3,7 @@ TODO:
     - Boosts / Frightened
     - No-Up Zones
     - Ghosts Timer
+    - Change Direction on Mode Switch
 """
 import pygame
 import controls
