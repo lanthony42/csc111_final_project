@@ -43,6 +43,7 @@ DOT = '2'
 BOOST = '5'
 DOOR = '8'
 OUT = '9'
+BAD_TILES = {WALL, DOOR, OUT}
 
 DOT_SCORE = 10
 BOOST_SCORE = 50
@@ -50,6 +51,7 @@ DEFAULT_LIVES = 3
 FPS = 24
 
 # Round Timings
+ROUND_START = 2 * FPS
 ROUND_PATTERN = ((7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (5 * FPS, 'scatter'), (20 * FPS, 'chase'),

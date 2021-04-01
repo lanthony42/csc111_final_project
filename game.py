@@ -1,13 +1,13 @@
 """
 TODO:
-    - Ghosts
-    - Refactor for generalization
+    - Boosts / Frightened
+    - No-Up Zones
 """
 import pygame
 import controls
 from helpers import Vector, within_grid
 from globals import *
-from copy import copy
+from copy import copy, deepcopy
 from typing import Type
 import math
 import csv
@@ -24,20 +24,24 @@ class Game:
         self.ghosts = []
 
         self.game_over = False
+        self.lost_life = False
         self.lives = 0
         self.score = 0
 
         # Round variables
-        self.mode_ind = 0
-        self.round_timer = ROUND_PATTERN[self.mode_ind][0]
+        self._mode_ind = 0
+        self._round_timer = ROUND_PATTERN[self._mode_ind][0]
+        self._start_timer = ROUND_START
+        self.dot_counter = 0
 
         # Load the map
         with open(map) as csv_file:
             reader = csv.reader(csv_file)
-            self.grid = list(reader)
+            self._base_grid = list(reader)
+        self.grid = []
 
     def mode(self) -> str:
-        return ROUND_PATTERN[self.mode_ind][1]
+        return ROUND_PATTERN[self._mode_ind][1]
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
             lives: int = DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
@@ -50,21 +54,26 @@ class Game:
                          controls.PinkyController(self, self.ghosts[1]),
                          controls.InkyController(self, self.ghosts[2]),
                          controls.ClydeController(self, self.ghosts[3])]
+        self.grid = deepcopy(self._base_grid)
 
         self.events = None
         self.game_over = False
+        self.lost_life = False
         self.lives = lives
         self.score = 0
 
         # Round variables
-        self.mode_ind = 0
-        self.round_timer = ROUND_PATTERN[self.mode_ind][0]
+        self._mode_ind = 0
+        self._round_timer = ROUND_PATTERN[self._mode_ind][0]
+        self._start_timer = ROUND_START
+        self.dot_counter = 0
 
         if visual and not pygame.display.get_init():
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
             pygame.display.set_caption('Pac-Man')
         elif not visual:
             self.screen = None
+            self._start_timer = 0
 
         while not self.game_over:
             if self.handle_input():
@@ -85,7 +94,9 @@ class Game:
         self.events = pygame.event.get()
 
         for event in self.events:
-            if event.type == pygame.QUIT:
+            if event.type == pygame.KEYDOWN:
+                self._start_timer = 0
+            elif event.type == pygame.QUIT:
                 pygame.display.quit()
                 pygame.quit()
 
@@ -93,13 +104,18 @@ class Game:
         return False
 
     def update(self) -> None:
+        # Check for start timer
+        if self._start_timer > 0:
+            self._start_timer -= 1
+            return
+
         # Update round pattern
-        if self.round_timer is not None:
-            if self.round_timer <= 0:
-                self.mode_ind += 1
-                self.round_timer = ROUND_PATTERN[self.mode_ind][0]
+        if self._round_timer is not None:
+            if self._round_timer <= 0:
+                self._mode_ind += 1
+                self._round_timer = ROUND_PATTERN[self._mode_ind][0]
             else:
-                self.round_timer -= 1
+                self._round_timer -= 1
 
         # Control actors
         for control in self.controls:
@@ -111,14 +127,15 @@ class Game:
             ghost.update(self.grid)
 
             if self.player.rect().colliderect(ghost.rect()):
-                pass
-                # self.lives -= 1
+                self.lose_life()
+                break
 
         # Tile collisions
         tile = self.player.tile()
         if self.grid[tile.y][tile.x] == DOT:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += DOT_SCORE
+            self.dot_counter += 1
         elif self.grid[tile.y][tile.x] == BOOST:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += BOOST_SCORE
@@ -126,6 +143,22 @@ class Game:
         # Check win and lose conditions
         if self.check_win() or self.lives <= 0:
             self.game_over = True
+
+    def lose_life(self) -> None:
+        self.lost_life = True
+        self.dot_counter = 0
+        self.lives -= 1
+
+        for control in self.controls:
+            if isinstance(control, controls.GhostController):
+                control.reset()
+
+        self.player.reset()
+        for ghost in self.ghosts:
+            ghost.reset()
+
+        if pygame.display.get_init():
+            self._start_timer = ROUND_START
 
     def draw(self, debug: bool = False) -> None:
         self.screen.fill((0, 0, 0))
@@ -173,11 +206,11 @@ class Actor:
                  cornering: bool = True) -> None:
         self.position = copy(position)
         self.direction = direction
-        self._home_position = position
+        self._default_position = position
+        self._default_direction = direction
         self._queued_direction = None
 
         self.cornering = cornering
-        self.allow_door = False
         self.colour = colour
         self.speed = speed
 
@@ -186,12 +219,6 @@ class Actor:
 
     def rect(self) -> pygame.Rect:
         return pygame.Rect(*self.position, *TILE_SIZE)
-
-    def bad_tiles(self) -> set[str]:
-        if self.allow_door:
-            return {WALL, OUT}
-        else:
-            return {WALL, DOOR, OUT}
 
     def change_direction(self, grid: list[list[int]], direction: Vector) -> None:
         if direction in DIRECTION.values():
@@ -216,7 +243,7 @@ class Actor:
             same_axis = abs(self.direction.x) == abs(direction.x)
 
             if within_grid(next_tile) and (within_cornering or same_axis) and \
-                    grid[next_tile.y][next_tile.x] not in self.bad_tiles():
+                    grid[next_tile.y][next_tile.x] not in BAD_TILES:
                 self.direction = direction
                 self._queued_direction = None
             else:
@@ -229,7 +256,7 @@ class Actor:
         tile = self.tile()
         next_tile = self.tile() + self.direction
 
-        if not within_grid(next_tile) or grid[next_tile.y][next_tile.x] in self.bad_tiles():
+        if not within_grid(next_tile) or grid[next_tile.y][next_tile.x] in BAD_TILES:
             next_tile = tile
 
         if self.direction.y != 0:
@@ -240,6 +267,10 @@ class Actor:
             target = self.position
 
         self.position.lerp(target, self.speed)
+
+    def reset(self) -> None:
+        self.position = copy(self._default_position)
+        self.direction = self._default_direction
 
     def draw(self, screen: pygame.Surface, debug: bool = False) -> None:
         if debug:
