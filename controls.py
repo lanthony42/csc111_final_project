@@ -157,7 +157,7 @@ class BlinkyController(GhostController):
         return Vector(25, 0)
 
     def chase_target(self) -> Vector:
-        return self.game_state.player.tile()
+        return self.game_state.player.actor.tile()
 
 
 class PinkyController(GhostController):
@@ -173,7 +173,7 @@ class PinkyController(GhostController):
         return Vector(2, 0)
 
     def chase_target(self) -> Vector:
-        player = self.game_state.player
+        player = self.game_state.player.actor
 
         if player.direction != DIRECTION[pygame.K_UP]:
             return player.tile() + 4 * player.direction
@@ -201,7 +201,7 @@ class InkyController(GhostController):
         return Vector(27, 35)
 
     def chase_target(self) -> Vector:
-        player = self.game_state.player
+        player = self.game_state.player.actor
         pivot = player.tile() + 2 * player.direction
 
         # Note the original bug with Inky's up-targeting is ignored as effect is insignificant
@@ -228,7 +228,7 @@ class ClydeController(GhostController):
         return Vector(0, 35)
 
     def chase_target(self) -> Vector:
-        player_tile = self.game_state.player.tile()
+        player_tile = self.game_state.player.actor.tile()
 
         if grid_distance(self.actor.tile(), player_tile) > 8:
             return player_tile

@@ -22,7 +22,6 @@ class Game:
         self.events = None
 
         self.controls = []
-        self.player_control = None
         self.player = None
 
         self.game_over = False
@@ -55,8 +54,8 @@ class Game:
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
             lives: int = DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
         # Reinitialize
-        self.player = Actor(position=PLAYER_POS, direction=PLAYER_DIR, speed=PLAYER_SPEED)
-        self.player_control = controls.InputController(self, self.player)
+        self.player = player_controller(self, Actor(position=PLAYER_POS, direction=PLAYER_DIR,
+                                                    speed=PLAYER_SPEED))
         self.controls = [control(self, Actor(position=pos, colour=col, cornering=False))
                          for control, pos, col in zip(controls.GHOST_CONTROLLERS,
                                                       GHOST_POS, GHOST_COLOURS)]
@@ -127,14 +126,14 @@ class Game:
                 self._round_timer -= 1
 
         # Update actors
-        self.player_control.control()
-        self.player.update(self.grid)
+        self.player.control()
+        self.player.actor.update(self.grid)
         for control in self.controls:
             control.control()
             ghost = control.actor
             ghost.update(self.grid)
 
-            is_collide = self.player.rect().colliderect(ghost.rect())
+            is_collide = self.player.actor.rect().colliderect(ghost.rect())
             if is_collide and self.mode() != 'fright':
                 self.lose_life()
                 break
@@ -142,7 +141,7 @@ class Game:
                 ghost.reset()
 
         # Tile collisions
-        tile = self.player.tile()
+        tile = self.player.actor.tile()
         if self.grid[tile.y][tile.x] == DOT:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += DOT_SCORE
@@ -165,7 +164,7 @@ class Game:
             control.reset()
             control.actor.reset()
 
-        self.player.reset()
+        self.player.actor.reset()
 
         if pygame.display.get_init():
             self._start_timer = ROUND_START
@@ -181,9 +180,9 @@ class Game:
             control.actor.draw(self.screen, debug)
             if debug:
                 control.draw_debug()
-        self.player.draw(self.screen, debug)
+        self.player.actor.draw(self.screen, debug)
         if debug:
-            self.player_control.draw_debug()
+            self.player.draw_debug()
 
         pygame.display.update()
 
