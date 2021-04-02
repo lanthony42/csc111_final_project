@@ -34,35 +34,36 @@ class InputController(Controller):
 class GhostController(Controller):
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
-        self.next_tile = None
-        self.next_direction = None
+        self._next_tile = None
+        self._next_direction = None
 
         # self.state in {'inactive', 'home', 'active'}
         self.state = 'inactive'
-        # self.mode in {'scatter', 'chase', 'fright'}
+        # self.mode in {'scatter', 'chase'}
         self.mode = self.game_state.mode()
+        self._is_frightened = False
 
     def control(self) -> None:
         if self.state == 'active':
             game_mode = self.game_state.mode()
             if self.mode != game_mode:
-                self.next_tile = None
-                self.next_direction = None
+                self._next_tile = None
+                self._next_direction = None
                 self.actor.reset_direction()
                 self.mode = game_mode
 
             tile = self.actor.tile()
-            if self.next_tile is not None and tile != self.next_tile:
+            if self._next_tile is not None and tile != self._next_tile:
                 return
 
-            self.actor.change_direction(self.game_state.grid, self.next_direction)
+            self.actor.change_direction(self.game_state.grid, self._next_direction)
 
-            if self.next_tile is None:
-                self.next_tile = tile
+            if self._next_tile is None:
+                self._next_tile = tile
             else:
-                self.next_tile = tile + self.next_direction
+                self._next_tile = tile + self._next_direction
 
-            if game_mode != 'fright':
+            if not self._is_frightened:
                 self.control_target()
             else:
                 self.control_fright()
@@ -72,12 +73,12 @@ class GhostController(Controller):
             self.state = 'home'
 
     def control_target(self) -> None:
-        self.next_direction = -self.actor.direction
+        self._next_direction = -self.actor.direction
         best_distance = None
 
         for key in DIRECTION_ORDER:
             direction = DIRECTION[key]
-            candidate = self.next_tile + direction
+            candidate = self._next_tile + direction
 
             if not within_grid(candidate) or candidate == self.actor.tile() or \
                     self.game_state.grid[candidate.y][candidate.x] in BAD_TILES:
@@ -90,23 +91,23 @@ class GhostController(Controller):
                 distance = grid_distance(candidate, self.chase_target())
 
             if best_distance is None or distance < best_distance:
-                self.next_direction = direction
+                self._next_direction = direction
                 best_distance = distance
 
     def control_fright(self) -> None:
         candidates = []
         for key in DIRECTION_ORDER:
             direction = DIRECTION[key]
-            candidate = self.next_tile + direction
+            candidate = self._next_tile + direction
 
             if within_grid(candidate) and candidate != self.actor.tile() and \
                     self.game_state.grid[candidate.y][candidate.x] not in BAD_TILES:
                 candidates.append(direction)
 
         if candidates != []:
-            self.next_direction = random.choice(candidates)
+            self._next_direction = random.choice(candidates)
         else:
-            self.next_direction = -self.actor.direction
+            self._next_direction = -self.actor.direction
 
     def control_home(self) -> None:
         actor_pos = self.actor.position
@@ -118,15 +119,33 @@ class GhostController(Controller):
         else:
             self.actor.position.lerp(GHOST_POS[1], self.actor.speed)
 
-    def reset(self) -> None:
-        self.next_tile = None
-        self.next_direction = None
+    def set_frightened(self, is_frightened: bool) -> None:
+        if not self._is_frightened and is_frightened:
+            self.actor.colour = FRIGHT
+            self.actor.speed *= 0.5
+            self.mode = ''
+        elif self._is_frightened and not is_frightened:
+            self.actor.reset_colour()
+            self.actor.reset_speed()
+            self.mode = ''
+
+        self._is_frightened = is_frightened
+
+    def get_frightened(self) -> bool:
+        return self._is_frightened
+
+    def reset(self, state: str = 'active') -> None:
+        self._next_tile = None
+        self._next_direction = None
+        self.state = state
+
+        self.mode = self.game_state.mode()
 
     def draw_debug(self) -> None:
-        if self.state != 'active' or self.mode == 'fright' or self.next_tile is None:
+        if self.state != 'active' or self.mode == 'fright' or self._next_tile is None:
             return
 
-        next_position = self.next_tile * TILE_SIZE
+        next_position = self._next_tile * TILE_SIZE
         pygame.draw.rect(self.game_state.screen, (0, 100, 0),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
@@ -169,9 +188,8 @@ class PinkyController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'home'
 
-    def reset(self) -> None:
-        super().reset()
-        self.state = 'inactive'
+    def reset(self, state: str = 'inactive') -> None:
+        super().reset(state)
 
     def scatter_target(self) -> Vector:
         return Vector(2, 0)
@@ -197,9 +215,8 @@ class InkyController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'inactive'
 
-    def reset(self) -> None:
-        super().reset()
-        self.state = 'inactive'
+    def reset(self, state: str = 'inactive') -> None:
+        super().reset(state)
 
     def scatter_target(self) -> Vector:
         return Vector(27, 35)
@@ -224,9 +241,8 @@ class ClydeController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'inactive'
 
-    def reset(self) -> None:
-        super().reset()
-        self.state = 'inactive'
+    def reset(self, state: str = 'inactive') -> None:
+        super().reset(state)
 
     def scatter_target(self) -> Vector:
         return Vector(0, 35)

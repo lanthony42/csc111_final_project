@@ -1,7 +1,5 @@
 """
 TODO:
-    - Cleanup
-    - Boosts / Frightened
     - No-Up Zones
     - Ghosts Timer
     - Basic Animation
@@ -11,7 +9,7 @@ import controls
 from helpers import Vector, within_grid
 from globals import *
 from copy import copy, deepcopy
-from typing import Type
+from typing import Type, Optional
 import math
 import csv
 
@@ -44,12 +42,6 @@ class Game:
         self.grid = []
 
     def mode(self) -> str:
-        if self.boost_timer > 0:
-            return 'fright'
-        else:
-            return self.target_mode()
-
-    def target_mode(self) -> str:
         return ROUND_PATTERN[self._mode_ind][1]
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
@@ -75,6 +67,7 @@ class Game:
         self.dot_counter = 0
         self.boost_timer = 0
 
+        # Set up screen
         if visual and not pygame.display.get_init():
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
             pygame.display.set_caption('Pac-Man')
@@ -82,9 +75,10 @@ class Game:
             self.screen = None
             self._start_timer = 0
 
+        # Start game loop
         while not self.game_over:
             if self.handle_input():
-                return self.score
+                break
 
             self.update()
 
@@ -131,16 +125,21 @@ class Game:
         self.player.actor.update(self.grid)
 
         for ghost in self.ghosts:
+            if self.boost_timer <= 0:
+                ghost.set_frightened(False)
+
             ghost.control()
             ghost.actor.update(self.grid)
 
             # Ghost collisions
             is_collide = self.player.actor.rect().colliderect(ghost.actor.rect())
-            if is_collide and self.mode() != 'fright':
+            if is_collide and ghost.get_frightened():
+                ghost.reset('home')
+                ghost.set_frightened(False)
+                ghost.actor.reset(HOME_POS)
+            elif is_collide:
                 self.lose_life()
                 break
-            elif is_collide:
-                ghost.actor.reset()
 
         # Tile collisions
         tile = self.player.actor.tile()
@@ -151,7 +150,10 @@ class Game:
         elif self.grid[tile.y][tile.x] == BOOST:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += BOOST_SCORE
+
             self.boost_timer = BOOST_TIME
+            for ghost in self.ghosts:
+                ghost.set_frightened(True)
 
         # Check win and lose conditions
         if self.lives <= 0 or self.check_win():
@@ -210,8 +212,7 @@ class Game:
 
         if debug:
             pygame.draw.rect(self.screen, (100, 100, 100),
-                             pygame.Rect(*position, *TILE_SIZE),
-                             width=1)
+                             pygame.Rect(*position, *TILE_SIZE), width=1)
 
     def check_win(self) -> None:
         return not any(tile in {DOT, BOOST} for row in self.grid for tile in row)
@@ -223,9 +224,12 @@ class Actor:
                  cornering: bool = True) -> None:
         self.position = copy(position)
         self.direction = direction
+
         self._default_position = position
         self._default_direction = direction
         self._queued_direction = None
+        self._default_colour = colour
+        self._default_speed = speed
 
         self.cornering = cornering
         self.colour = colour
@@ -285,13 +289,28 @@ class Actor:
 
         self.position.lerp(target, self.speed)
 
-    def reset(self) -> None:
-        self.position = copy(self._default_position)
+    def reset(self, position: Optional[Vector] = None) -> None:
+        if position is None:
+            self.reset_position()
+        else:
+            self.position = copy(position)
+
         self.reset_direction()
+        self.reset_colour()
+        self.reset_speed()
+
+    def reset_position(self) -> None:
+        self.position = copy(self._default_position)
 
     def reset_direction(self) -> None:
         self.direction = self._default_direction
         self._queued_direction = None
+
+    def reset_colour(self) -> None:
+        self.colour = self._default_colour
+
+    def reset_speed(self) -> None:
+        self.speed = self._default_speed
 
     def draw(self, screen: pygame.Surface, debug: bool = False) -> None:
         if debug:

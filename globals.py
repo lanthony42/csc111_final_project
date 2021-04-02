@@ -17,8 +17,8 @@ FPS = 24
 # Positioning Constants
 DEFAULT_POS = Vector(14, 14) * TILE_SIZE - TILE_CENTER_X
 PLAYER_POS = Vector(14, 26) * TILE_SIZE - TILE_CENTER_X
-GHOST_POS = (DEFAULT_POS,
-             Vector(14, 17) * TILE_SIZE - TILE_CENTER_X,
+HOME_POS = Vector(14, 17) * TILE_SIZE - TILE_CENTER_X
+GHOST_POS = (DEFAULT_POS, HOME_POS,
              Vector(12, 17) * TILE_SIZE - TILE_CENTER_X,
              Vector(16, 17) * TILE_SIZE - TILE_CENTER_X)
 
@@ -45,6 +45,7 @@ RED = (208, 62, 25)
 PINK = (234, 130, 229)
 TEAL = (70, 191, 238)
 ORANGE = (219, 133, 28)
+FRIGHT = (100, 100, 200)
 GHOST_COLOURS = (RED, PINK, TEAL, ORANGE)
 
 # Tile Types
