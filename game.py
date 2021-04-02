@@ -1,6 +1,5 @@
 """
 TODO:
-    - No-Up Zones
     - Ghosts Timer
     - Basic Animation
 """

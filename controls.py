@@ -88,7 +88,7 @@ class GhostController(Controller):
             if self.mode == 'scatter':
                 distance = grid_distance(candidate, self.scatter_target())
             else:
-                # Chase case
+                # Chase mode case
                 distance = grid_distance(candidate, self.chase_target())
 
             if best_distance is None or distance < best_distance:
@@ -152,7 +152,7 @@ class GhostController(Controller):
         if self.mode == 'scatter':
             target_position = self.scatter_target() * TILE_SIZE
         else:
-            # Chase case
+            # Chase mode case
             target_position = self.chase_target() * TILE_SIZE
 
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
