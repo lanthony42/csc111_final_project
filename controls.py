@@ -50,6 +50,7 @@ class GhostController(Controller):
                 self._next_tile = None
                 self._next_direction = None
                 self.actor.reset_direction()
+
                 self.mode = game_mode
 
             tile = self.actor.tile()
@@ -134,10 +135,9 @@ class GhostController(Controller):
     def get_frightened(self) -> bool:
         return self._is_frightened
 
-    def reset(self, state: str = 'active') -> None:
+    def reset(self) -> None:
         self._next_tile = None
         self._next_direction = None
-        self.state = state
 
         self.mode = self.game_state.mode()
 
@@ -173,6 +173,10 @@ class BlinkyController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'active'
 
+    def reset(self) -> None:
+        super().reset()
+        self.state = 'active'
+
     def scatter_target(self) -> Vector:
         return Vector(25, 0)
 
@@ -188,8 +192,9 @@ class PinkyController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'home'
 
-    def reset(self, state: str = 'inactive') -> None:
-        super().reset(state)
+    def reset(self) -> None:
+        super().reset()
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(2, 0)
@@ -215,8 +220,9 @@ class InkyController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'inactive'
 
-    def reset(self, state: str = 'inactive') -> None:
-        super().reset(state)
+    def reset(self) -> None:
+        super().reset()
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(27, 35)
@@ -241,8 +247,9 @@ class ClydeController(GhostController):
         super().__init__(game_state, actor)
         self.state = 'inactive'
 
-    def reset(self, state: str = 'inactive') -> None:
-        super().reset(state)
+    def reset(self) -> None:
+        super().reset()
+        self.state = 'inactive'
 
     def scatter_target(self) -> Vector:
         return Vector(0, 35)

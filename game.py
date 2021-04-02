@@ -134,8 +134,9 @@ class Game:
             # Ghost collisions
             is_collide = self.player.actor.rect().colliderect(ghost.actor.rect())
             if is_collide and ghost.get_frightened():
-                ghost.reset('home')
                 ghost.set_frightened(False)
+                ghost.state = 'home'
+
                 ghost.actor.reset(HOME_POS)
             elif is_collide:
                 self.lose_life()
