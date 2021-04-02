@@ -47,7 +47,7 @@ class GhostController(Controller):
             if self.mode != game_mode:
                 self.next_tile = None
                 self.next_direction = None
-                self.actor.direction = DEFAULT_DIR
+                self.actor.reset_direction()
                 self.mode = game_mode
 
             self.control_active()

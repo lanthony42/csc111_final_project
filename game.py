@@ -272,6 +272,9 @@ class Actor:
 
     def reset(self) -> None:
         self.position = copy(self._default_position)
+        self.reset_direction()
+
+    def reset_direction(self) -> None:
         self.direction = self._default_direction
         self._queued_direction = None
 
