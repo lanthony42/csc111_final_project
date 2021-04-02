@@ -205,7 +205,8 @@ class InkyController(GhostController):
         pivot = player.tile() + 2 * player.direction
 
         # Note the original bug with Inky's up-targeting is ignored as effect is insignificant
-        return pivot - (self.game_state.ghosts[0].tile() - pivot)
+        # TODO: Less Hardcodey?
+        return pivot - (self.game_state.controls[0].actor.tile() - pivot)
 
     def check_active(self) -> bool:
         if not self.game_state.lost_life:
@@ -239,3 +240,5 @@ class ClydeController(GhostController):
             return self.game_state.dot_counter >= 60
         else:
             return self.game_state.dot_counter >= 32
+
+GHOST_CONTROLLERS = (BlinkyController, PinkyController, InkyController, ClydeController)

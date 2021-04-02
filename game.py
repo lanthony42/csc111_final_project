@@ -22,8 +22,8 @@ class Game:
         self.events = None
 
         self.controls = []
+        self.player_control = None
         self.player = None
-        self.ghosts = []
 
         self.game_over = False
         self.lost_life = False
@@ -56,13 +56,10 @@ class Game:
             lives: int = DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
         # Reinitialize
         self.player = Actor(position=PLAYER_POS, direction=PLAYER_DIR, speed=PLAYER_SPEED)
-        self.ghosts = [Actor(position=position, colour=colour, cornering=False)
-                       for position, colour in zip(GHOST_POS, GHOST_COLOURS)]
-        self.controls = [controls.InputController(self, self.player),
-                         controls.BlinkyController(self, self.ghosts[0]),
-                         controls.PinkyController(self, self.ghosts[1]),
-                         controls.InkyController(self, self.ghosts[2]),
-                         controls.ClydeController(self, self.ghosts[3])]
+        self.player_control = controls.InputController(self, self.player)
+        self.controls = [control(self, Actor(position=pos, colour=col, cornering=False))
+                         for control, pos, col in zip(controls.GHOST_CONTROLLERS,
+                                                      GHOST_POS, GHOST_COLOURS)]
         self.grid = deepcopy(self._base_grid)
 
         self.events = None
@@ -129,13 +126,12 @@ class Game:
             else:
                 self._round_timer -= 1
 
-        # Control actors
+        # Update actors
+        self.player_control.control()
+        self.player.update(self.grid)
         for control in self.controls:
             control.control()
-
-        # Update actors
-        self.player.update(self.grid)
-        for ghost in self.ghosts:
+            ghost = control.actor
             ghost.update(self.grid)
 
             is_collide = self.player.rect().colliderect(ghost.rect())
@@ -166,12 +162,10 @@ class Game:
         self.lives -= 1
 
         for control in self.controls:
-            if isinstance(control, controls.GhostController):
-                control.reset()
+            control.reset()
+            control.actor.reset()
 
         self.player.reset()
-        for ghost in self.ghosts:
-            ghost.reset()
 
         if pygame.display.get_init():
             self._start_timer = ROUND_START
@@ -179,17 +173,17 @@ class Game:
     def draw(self, debug: bool = False) -> None:
         self.screen.fill((0, 0, 0))
 
-        if debug:
-            for control in self.controls:
-                control.draw_debug()
-
         for y, row in enumerate(self.grid):
             for x, tile in enumerate(row):
                 self.draw_tile(tile, x, y, debug)
 
-        for ghost in self.ghosts:
-            ghost.draw(self.screen, debug)
+        for control in self.controls:
+            control.actor.draw(self.screen, debug)
+            if debug:
+                control.draw_debug()
         self.player.draw(self.screen, debug)
+        if debug:
+            self.player_control.draw_debug()
 
         pygame.display.update()
 
