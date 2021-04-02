@@ -19,6 +19,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.screen = None
         self.events = None
+        self.font = None
 
         self.ghosts = []
         self.player = None
@@ -32,8 +33,10 @@ class Game:
         self._mode_ind = 0
         self._round_timer = ROUND_PATTERN[self._mode_ind][0]
         self._start_timer = ROUND_START
+
         self.dot_counter = 0
         self.boost_timer = 0
+        self.boost_ind = 0
 
         # Load the map
         with open(map) as csv_file:
@@ -57,6 +60,7 @@ class Game:
         self.events = None
         self.game_over = False
         self.lost_life = False
+
         self.lives = lives
         self.score = 0
 
@@ -64,12 +68,17 @@ class Game:
         self._mode_ind = 0
         self._round_timer = ROUND_PATTERN[self._mode_ind][0]
         self._start_timer = ROUND_START
+
         self.dot_counter = 0
         self.boost_timer = 0
+        self.boost_ind = 0
 
         # Set up screen
         if visual and not pygame.display.get_init():
+            pygame.init()
+
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
+            self.font = pygame.font.SysFont('arial', 24)
             pygame.display.set_caption('Pac-Man')
         elif not visual:
             self.screen = None
@@ -138,6 +147,9 @@ class Game:
                 ghost.state = 'home'
 
                 ghost.actor.reset(HOME_POS)
+
+                self.score += GHOST_SCORE[self.boost_ind]
+                self.boost_ind += 1
             elif is_collide:
                 self.lose_life()
                 break
@@ -153,6 +165,8 @@ class Game:
             self.score += BOOST_SCORE
 
             self.boost_timer = BOOST_TIME
+            self.boost_ind = 0
+
             for ghost in self.ghosts:
                 ghost.set_frightened(True)
 
@@ -189,6 +203,8 @@ class Game:
 
         self.player.actor.draw(self.screen, debug)
 
+        self.screen.blit(self.font.render(f'Score: {self.score}', 1,
+                                          (255, 255, 255)), (5, 5))
         pygame.display.update()
 
     def draw_debug(self) -> None:
