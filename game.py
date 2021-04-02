@@ -1,5 +1,6 @@
 """
 TODO:
+    - Cleanup
     - Boosts / Frightened
     - No-Up Zones
     - Ghosts Timer
@@ -21,7 +22,7 @@ class Game:
         self.screen = None
         self.events = None
 
-        self.controls = []
+        self.ghosts = []
         self.player = None
 
         self.game_over = False
@@ -56,9 +57,9 @@ class Game:
         # Reinitialize
         self.player = player_controller(self, Actor(position=PLAYER_POS, direction=PLAYER_DIR,
                                                     speed=PLAYER_SPEED))
-        self.controls = [control(self, Actor(position=pos, colour=col, cornering=False))
-                         for control, pos, col in zip(controls.GHOST_CONTROLLERS,
-                                                      GHOST_POS, GHOST_COLOURS)]
+        self.ghosts = [control(self, Actor(position=pos, colour=col, cornering=False))
+                       for control, pos, col in zip(controls.GHOST_CONTROLLERS,
+                                                    GHOST_POS, GHOST_COLOURS)]
         self.grid = deepcopy(self._base_grid)
 
         self.events = None
@@ -91,7 +92,7 @@ class Game:
                 self.draw(debug)
                 self.clock.tick(FPS)
 
-        return (self.check_win(), self.score)
+        return {'game_win': self.check_win(), 'score': self.score}
 
     def handle_input(self) -> bool:
         if not pygame.display.get_init():
@@ -125,20 +126,21 @@ class Game:
             else:
                 self._round_timer -= 1
 
-        # Update actors
+        # Control and update actors
         self.player.control()
         self.player.actor.update(self.grid)
-        for control in self.controls:
-            control.control()
-            ghost = control.actor
-            ghost.update(self.grid)
 
-            is_collide = self.player.actor.rect().colliderect(ghost.rect())
+        for ghost in self.ghosts:
+            ghost.control()
+            ghost.actor.update(self.grid)
+
+            # Ghost collisions
+            is_collide = self.player.actor.rect().colliderect(ghost.actor.rect())
             if is_collide and self.mode() != 'fright':
                 self.lose_life()
                 break
             elif is_collide:
-                ghost.reset()
+                ghost.actor.reset()
 
         # Tile collisions
         tile = self.player.actor.tile()
@@ -152,7 +154,7 @@ class Game:
             self.boost_timer = BOOST_TIME
 
         # Check win and lose conditions
-        if self.check_win() or self.lives <= 0:
+        if self.lives <= 0 or self.check_win():
             self.game_over = True
 
     def lose_life(self) -> None:
@@ -160,9 +162,9 @@ class Game:
         self.dot_counter = 0
         self.lives -= 1
 
-        for control in self.controls:
-            control.reset()
-            control.actor.reset()
+        for ghost in self.ghosts:
+            ghost.reset()
+            ghost.actor.reset()
 
         self.player.actor.reset()
 
@@ -176,15 +178,21 @@ class Game:
             for x, tile in enumerate(row):
                 self.draw_tile(tile, x, y, debug)
 
-        for control in self.controls:
-            control.actor.draw(self.screen, debug)
-            if debug:
-                control.draw_debug()
-        self.player.actor.draw(self.screen, debug)
         if debug:
-            self.player.draw_debug()
+            self.draw_debug()
+
+        for ghost in self.ghosts:
+            ghost.actor.draw(self.screen, debug)
+
+        self.player.actor.draw(self.screen, debug)
 
         pygame.display.update()
+
+    def draw_debug(self) -> None:
+        for ghost in self.ghosts:
+            ghost.draw_debug()
+
+        self.player.draw_debug()
 
     def draw_tile(self, tile: str, x: int, y: int, debug: bool = False) -> None:
         position = TILE_SIZE * (x, y)

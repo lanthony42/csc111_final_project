@@ -132,7 +132,8 @@ class GhostController(Controller):
 
         if self.mode == 'scatter':
             target_position = self.scatter_target() * TILE_SIZE
-        elif self.mode == 'chase':
+        else:
+            # Chase case
             target_position = self.chase_target() * TILE_SIZE
 
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
@@ -158,6 +159,9 @@ class BlinkyController(GhostController):
 
     def chase_target(self) -> Vector:
         return self.game_state.player.actor.tile()
+
+    def check_active(self) -> bool:
+        return True
 
 
 class PinkyController(GhostController):
@@ -201,12 +205,12 @@ class InkyController(GhostController):
         return Vector(27, 35)
 
     def chase_target(self) -> Vector:
+        # Note the original bug with Inky's up-targeting is ignored as effect is insignificant
         player = self.game_state.player.actor
         pivot = player.tile() + 2 * player.direction
 
-        # Note the original bug with Inky's up-targeting is ignored as effect is insignificant
-        # TODO: Less Hardcodey?
-        return pivot - (self.game_state.controls[0].actor.tile() - pivot)
+        ind = GHOST_CONTROLLERS.index(BlinkyController)
+        return pivot - (self.game_state.ghosts[ind].actor.tile() - pivot)
 
     def check_active(self) -> bool:
         if not self.game_state.lost_life:
