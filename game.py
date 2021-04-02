@@ -3,7 +3,7 @@ TODO:
     - Boosts / Frightened
     - No-Up Zones
     - Ghosts Timer
-    - Change Direction on Mode Switch
+    - Basic Animation
 """
 import pygame
 import controls
@@ -35,6 +35,7 @@ class Game:
         self._round_timer = ROUND_PATTERN[self._mode_ind][0]
         self._start_timer = ROUND_START
         self.dot_counter = 0
+        self.boost_timer = 0
 
         # Load the map
         with open(map) as csv_file:
@@ -43,6 +44,12 @@ class Game:
         self.grid = []
 
     def mode(self) -> str:
+        if self.boost_timer > 0:
+            return 'fright'
+        else:
+            return self.target_mode()
+
+    def target_mode(self) -> str:
         return ROUND_PATTERN[self._mode_ind][1]
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
@@ -69,6 +76,7 @@ class Game:
         self._round_timer = ROUND_PATTERN[self._mode_ind][0]
         self._start_timer = ROUND_START
         self.dot_counter = 0
+        self.boost_timer = 0
 
         if visual and not pygame.display.get_init():
             self.screen = pygame.display.set_mode(SCREEN_SIZE.tuple())
@@ -110,6 +118,8 @@ class Game:
         if self._start_timer > 0:
             self._start_timer -= 1
             return
+        if self.boost_timer > 0:
+            self.boost_timer -= 1
 
         # Update round pattern
         if self._round_timer is not None:
@@ -128,9 +138,12 @@ class Game:
         for ghost in self.ghosts:
             ghost.update(self.grid)
 
-            if self.player.rect().colliderect(ghost.rect()):
+            is_collide = self.player.rect().colliderect(ghost.rect())
+            if is_collide and self.mode() != 'fright':
                 self.lose_life()
                 break
+            elif is_collide:
+                ghost.reset()
 
         # Tile collisions
         tile = self.player.tile()
@@ -141,6 +154,7 @@ class Game:
         elif self.grid[tile.y][tile.x] == BOOST:
             self.grid[tile.y][tile.x] = EMPTY
             self.score += BOOST_SCORE
+            self.boost_timer = BOOST_TIME
 
         # Check win and lose conditions
         if self.check_win() or self.lives <= 0:

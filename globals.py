@@ -8,6 +8,12 @@ TILE_CENTER_X = Vector(TILE_SIZE.x / 2, 0)
 GRID_SIZE = Vector(28, 36)
 SCREEN_SIZE = TILE_SIZE * GRID_SIZE
 
+# Gameplay Constants
+DOT_SCORE = 10
+BOOST_SCORE = 50
+DEFAULT_LIVES = 3
+FPS = 24
+
 # Positioning Constants
 DEFAULT_POS = Vector(14, 14) * TILE_SIZE - TILE_CENTER_X
 PLAYER_POS = Vector(14, 26) * TILE_SIZE - TILE_CENTER_X
@@ -29,8 +35,9 @@ CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3/ 8),
 
 DEFAULT_DIR = Vector(0, 0)
 PLAYER_DIR = DIRECTION[pygame.K_LEFT]
-DEFAULT_SPEED = 4.0
-PLAYER_SPEED = 4.5
+BASE_SPEED = 10 * TILE_SIZE.x / FPS
+DEFAULT_SPEED = round(BASE_SPEED * 0.75, 2)
+PLAYER_SPEED = round(BASE_SPEED * 0.8, 2)
 
 # Colours
 YELLOW = (253, 255, 0)
@@ -49,13 +56,8 @@ DOOR = '8'
 OUT = '9'
 BAD_TILES = {WALL, DOOR, OUT}
 
-# Misc. Game Constants
-DOT_SCORE = 10
-BOOST_SCORE = 50
-DEFAULT_LIVES = 3
-FPS = 24
-
 # Round Timings
+BOOST_TIME = 6 * FPS
 ROUND_START = 2 * FPS
 ROUND_PATTERN = ((7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (7 * FPS, 'scatter'), (20 * FPS, 'chase'),

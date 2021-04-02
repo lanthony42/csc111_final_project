@@ -2,6 +2,7 @@ from __future__ import annotations
 import pygame
 from globals import *
 from helpers import grid_distance, within_grid
+import random
 import game
 
 
@@ -50,23 +51,27 @@ class GhostController(Controller):
                 self.actor.reset_direction()
                 self.mode = game_mode
 
-            self.control_active()
+            tile = self.actor.tile()
+            if self.next_tile is not None and tile != self.next_tile:
+                return
+
+            self.actor.change_direction(self.game_state.grid, self.next_direction)
+
+            if self.next_tile is None:
+                self.next_tile = tile
+            else:
+                self.next_tile = tile + self.next_direction
+
+            if game_mode != 'fright':
+                self.control_target()
+            else:
+                self.control_fright()
         elif self.state == 'home':
             self.control_home()
         elif self.state == 'inactive' and self.check_active():
             self.state = 'home'
 
-    def control_active(self) -> None:
-        tile = self.actor.tile()
-        if self.next_tile is not None and tile != self.next_tile:
-            return
-
-        self.actor.change_direction(self.game_state.grid, self.next_direction)
-        if self.next_tile is None:
-            self.next_tile = tile
-        else:
-            self.next_tile = tile + self.next_direction
-
+    def control_target(self) -> None:
         self.next_direction = -self.actor.direction
         best_distance = None
 
@@ -78,14 +83,30 @@ class GhostController(Controller):
                     self.game_state.grid[candidate.y][candidate.x] in BAD_TILES:
                 continue
 
-            if self.game_state.mode() == 'scatter':
+            if self.mode == 'scatter':
                 distance = grid_distance(candidate, self.scatter_target())
-            elif self.game_state.mode() == 'chase':
+            else:
+                # Chase case
                 distance = grid_distance(candidate, self.chase_target())
 
             if best_distance is None or distance < best_distance:
                 self.next_direction = direction
                 best_distance = distance
+
+    def control_fright(self) -> None:
+        candidates = []
+        for key in DIRECTION_ORDER:
+            direction = DIRECTION[key]
+            candidate = self.next_tile + direction
+
+            if within_grid(candidate) and candidate != self.actor.tile() and \
+                    self.game_state.grid[candidate.y][candidate.x] not in BAD_TILES:
+                candidates.append(direction)
+
+        if candidates != []:
+            self.next_direction = random.choice(candidates)
+        else:
+            self.next_direction = -self.actor.direction
 
     def control_home(self) -> None:
         actor_pos = self.actor.position
@@ -102,16 +123,16 @@ class GhostController(Controller):
         self.next_direction = None
 
     def draw_debug(self) -> None:
-        if self.state != 'active' or self.next_tile is None:
+        if self.state != 'active' or self.mode == 'fright' or self.next_tile is None:
             return
 
         next_position = self.next_tile * TILE_SIZE
         pygame.draw.rect(self.game_state.screen, (0, 100, 0),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
-        if self.game_state.mode() == 'scatter':
+        if self.mode == 'scatter':
             target_position = self.scatter_target() * TILE_SIZE
-        elif self.game_state.mode() == 'chase':
+        elif self.mode == 'chase':
             target_position = self.chase_target() * TILE_SIZE
 
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
