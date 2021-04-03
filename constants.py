@@ -1,5 +1,5 @@
-from helpers import Vector
 import pygame
+from vector import Vector
 
 
 # Game Size Constants
@@ -29,7 +29,7 @@ DIRECTION = {pygame.K_UP: Vector(0, -1),
              pygame.K_LEFT: Vector(-1, 0),
              pygame.K_DOWN: Vector(0, 1),
              pygame.K_RIGHT: Vector(1, 0)}
-CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3/ 8),
+CORNER = {(0, -1): (-TILE_SIZE.y / 8, TILE_SIZE.y * 3 / 8),
           (-1, 0): (-TILE_SIZE.x / 8, TILE_SIZE.x * 3 / 8),
           (0, 1): (-TILE_SIZE.y * 3 / 8, TILE_SIZE.y / 8),
           (1, 0): (-TILE_SIZE.x * 3 / 8, TILE_SIZE.x / 8)}
@@ -66,3 +66,19 @@ ROUND_PATTERN = ((7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (5 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (5 * FPS, 'scatter'), (None, 'chase'))
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['pygame', 'vector'],
+        'max-line-length': 100,
+        'disable': ['E1136', 'E1101']
+    })
+
+    import python_ta.contracts
+    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.check_all_contracts()
+
+    import doctest
+    doctest.testmod()

@@ -1,12 +1,22 @@
 from __future__ import annotations
-import pygame
-from globals import *
-from helpers import grid_distance, within_grid
+
+from typing import Optional, TYPE_CHECKING
 import random
-import game
+import pygame
+
+from helpers import grid_distance, within_grid
+from vector import Vector
+import constants as const
+
+# Only imports when type-checking to avoid circular import issues
+if TYPE_CHECKING:
+    import game
 
 
 class Controller:
+    game_state: game.Game
+    actor: game.Actor
+
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         self.game_state = game_state
         self.actor = actor
@@ -25,13 +35,20 @@ class InputController(Controller):
 
         for event in self.game_state.events:
             if event.type == pygame.KEYDOWN:
-                self.actor.change_direction(self.game_state.grid, DIRECTION.get(event.key))
+                self.actor.change_direction(self.game_state.grid, const.DIRECTION.get(event.key))
 
     def draw_debug(self) -> None:
         pass
 
 
 class GhostController(Controller):
+    _next_tile: Optional[Vector]
+    _next_direction: Optional[Vector]
+    _is_frightened: bool
+
+    state: str
+    mode: str
+
     def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
         super().__init__(game_state, actor)
         self._next_tile = None
@@ -79,12 +96,12 @@ class GhostController(Controller):
         self._next_direction = -self.actor.direction
         best_distance = None
 
-        for key in DIRECTION_ORDER:
-            direction = DIRECTION[key]
+        for key in const.DIRECTION_ORDER:
+            direction = const.DIRECTION[key]
             candidate = self._next_tile + direction
 
             if not within_grid(candidate) or candidate == self.actor.tile() or \
-                    self.game_state.grid[candidate.y][candidate.x] in BAD_TILES:
+                    self.game_state.grid[candidate.y][candidate.x] in const.BAD_TILES:
                 continue
 
             if self.mode == 'scatter':
@@ -99,12 +116,12 @@ class GhostController(Controller):
 
     def control_fright(self) -> None:
         candidates = []
-        for key in DIRECTION_ORDER:
-            direction = DIRECTION[key]
+        for key in const.DIRECTION_ORDER:
+            direction = const.DIRECTION[key]
             candidate = self._next_tile + direction
 
             if within_grid(candidate) and candidate != self.actor.tile() and \
-                    self.game_state.grid[candidate.y][candidate.x] not in BAD_TILES:
+                    self.game_state.grid[candidate.y][candidate.x] not in const.BAD_TILES:
                 candidates.append(direction)
 
         if candidates != []:
@@ -115,16 +132,16 @@ class GhostController(Controller):
     def control_home(self) -> None:
         actor_pos = self.actor.position
 
-        if actor_pos == DEFAULT_POS:
+        if actor_pos == const.DEFAULT_POS:
             self.state = 'active'
-        elif actor_pos.x == DEFAULT_POS.x:
-            self.actor.position.lerp(DEFAULT_POS, self.actor.speed)
+        elif actor_pos.x == const.DEFAULT_POS.x:
+            self.actor.position.lerp(const.DEFAULT_POS, self.actor.speed)
         else:
-            self.actor.position.lerp(GHOST_POS[1], self.actor.speed)
+            self.actor.position.lerp(const.GHOST_POS[1], self.actor.speed)
 
     def set_frightened(self, is_frightened: bool) -> None:
         if not self._is_frightened and is_frightened:
-            self.actor.colour = FRIGHT
+            self.actor.colour = const.FRIGHT
             self.actor.speed *= 0.5
             self.mode = ''
         elif self._is_frightened and not is_frightened:
@@ -147,18 +164,18 @@ class GhostController(Controller):
         if self.state != 'active' or self.mode == 'fright' or self._next_tile is None:
             return
 
-        next_position = self._next_tile * TILE_SIZE
+        next_position = self._next_tile * const.TILE_SIZE
         pygame.draw.rect(self.game_state.screen, (100, 0, 100),
-                         pygame.Rect(*next_position, *TILE_SIZE))
+                         pygame.Rect(*next_position, *const.TILE_SIZE))
 
         if self.game_state.mode() == 'scatter':
-            target_position = self.scatter_target() * TILE_SIZE
+            target_position = self.scatter_target() * const.TILE_SIZE
         else:
             # Chase mode case
-            target_position = self.chase_target() * TILE_SIZE
+            target_position = self.chase_target() * const.TILE_SIZE
 
         pygame.draw.rect(self.game_state.screen, (0, 100, 100),
-                         pygame.Rect(*target_position, *TILE_SIZE))
+                         pygame.Rect(*target_position, *const.TILE_SIZE))
 
     def scatter_target(self) -> Vector:
         raise NotImplementedError
@@ -204,7 +221,7 @@ class PinkyController(GhostController):
     def chase_target(self) -> Vector:
         player = self.game_state.player.actor
 
-        if player.direction != DIRECTION[pygame.K_UP]:
+        if player.direction != const.DIRECTION[pygame.K_UP]:
             return player.tile() + 4 * player.direction
         else:
             # Replicates the original bug with Pinky's up-targeting
@@ -237,8 +254,7 @@ class InkyController(GhostController):
         player = self.game_state.player.actor
         pivot = player.tile() + 2 * player.direction
 
-        ind = GHOST_CONTROLLERS.index(BlinkyController)
-        return pivot - (self.game_state.ghosts[ind].actor.tile() - pivot)
+        return pivot - (self.game_state.ghosts[0].actor.tile() - pivot)
 
     def check_active(self) -> bool:
         if self.game_state.release_level >= 2:
@@ -279,4 +295,18 @@ class ClydeController(GhostController):
         else:
             return self.game_state.dot_counter >= 32
 
-GHOST_CONTROLLERS = (BlinkyController, PinkyController, InkyController, ClydeController)
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['random', 'pygame', 'constants', 'game', 'helpers', 'vector'],
+        'max-line-length': 100,
+        'disable': ['E1136', 'E1101']
+    })
+
+    import python_ta.contracts
+    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.check_all_contracts()
+
+    import doctest
+    doctest.testmod()
