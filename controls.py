@@ -211,10 +211,13 @@ class PinkyController(GhostController):
             return player.tile() + (-4, -4)
 
     def check_active(self) -> bool:
+        if self.game_state.release_level >= 1:
+            return True
+
         if self.game_state.lost_life:
             return self.game_state.dot_counter >= 7
         else:
-            return False
+            return True
 
 
 class InkyController(GhostController):
@@ -238,6 +241,9 @@ class InkyController(GhostController):
         return pivot - (self.game_state.ghosts[ind].actor.tile() - pivot)
 
     def check_active(self) -> bool:
+        if self.game_state.release_level >= 2:
+            return True
+
         if not self.game_state.lost_life:
             return self.game_state.dot_counter >= 30
         else:
@@ -265,6 +271,9 @@ class ClydeController(GhostController):
             return Vector(0, 35)
 
     def check_active(self) -> bool:
+        if self.game_state.release_level >= 3:
+            return True
+
         if not self.game_state.lost_life:
             return self.game_state.dot_counter >= 60
         else:

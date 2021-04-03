@@ -60,6 +60,7 @@ BAD_TILES = {WALL, DOOR, OUT}
 
 # Round Timings
 BOOST_TIME = 6 * FPS
+GHOST_RELEASE = 5.5 * FPS
 ROUND_START = 2 * FPS
 ROUND_PATTERN = ((7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (7 * FPS, 'scatter'), (20 * FPS, 'chase'),

@@ -1,6 +1,5 @@
 """
 TODO:
-    - Ghosts Timer
     - Basic Animation
 """
 import pygame
@@ -34,6 +33,8 @@ class Game:
         self._start_timer = ROUND_START
 
         self.dot_counter = 0
+        self.release_timer = 0
+        self.release_level = 0
         self.boost_timer = 0
         self.boost_ind = 0
 
@@ -69,6 +70,8 @@ class Game:
         self._start_timer = ROUND_START
 
         self.dot_counter = 0
+        self.release_timer = 0
+        self.release_level = 0
         self.boost_timer = 0
         self.boost_ind = 0
 
@@ -117,6 +120,13 @@ class Game:
         if self._start_timer > 0:
             self._start_timer -= 1
             return
+
+        if self.release_timer >= GHOST_RELEASE:
+            self.release_timer = 0
+            self.release_level += 1
+        elif self.release_level < 3:
+            self.release_timer += 1
+
         if self.boost_timer > 0:
             self.boost_timer -= 1
 
@@ -176,6 +186,8 @@ class Game:
     def lose_life(self) -> None:
         self.lost_life = True
         self.dot_counter = 0
+        self.release_timer = 0
+        self.release_level = 0
         self.lives -= 1
 
         for ghost in self.ghosts:
