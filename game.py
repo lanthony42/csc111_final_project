@@ -1,6 +1,6 @@
 """
 TODO:
-    - Basic Animation
+    - Next Stage...
 """
 import pygame
 import controls
