@@ -336,4 +336,14 @@ class Actor:
             next_position = (self.tile() + self.direction) * TILE_SIZE
             pygame.draw.rect(screen, (100, 0, 0), pygame.Rect(*next_position, *TILE_SIZE))
 
+            start_position = self.position + 8
+            end_direction = start_position + self.direction * 20
+            pygame.draw.line(screen, (200, 200, 0), start_position.tuple(),
+                             end_direction.tuple(), 4)
+
+            if self._queued_direction is not None:
+                end_queue_dir = start_position + self._queued_direction * 20
+                pygame.draw.line(screen, (200, 50, 0), start_position.tuple(),
+                                 end_queue_dir.tuple(), 4)
+
         pygame.draw.rect(screen, self.colour, self.rect())

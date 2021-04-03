@@ -54,7 +54,9 @@ class GhostController(Controller):
                 self.mode = game_mode
 
             tile = self.actor.tile()
-            if self._next_tile is not None and tile != self._next_tile:
+            if self._next_tile is not None and grid_distance(self._next_tile, tile) > 1:
+                self._next_tile = None
+            elif self._next_tile is not None and tile != self._next_tile:
                 return
 
             self.actor.change_direction(self.game_state.grid, self._next_direction)
@@ -146,7 +148,7 @@ class GhostController(Controller):
             return
 
         next_position = self._next_tile * TILE_SIZE
-        pygame.draw.rect(self.game_state.screen, (0, 100, 0),
+        pygame.draw.rect(self.game_state.screen, (100, 0, 100),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
         if self.mode == 'scatter':
