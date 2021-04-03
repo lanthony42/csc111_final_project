@@ -46,7 +46,7 @@ class GhostController(Controller):
     def control(self) -> None:
         if self.state == 'active':
             game_mode = self.game_state.mode()
-            if self.mode != game_mode:
+            if self.mode != game_mode and not self._is_frightened:
                 self._next_tile = None
                 self._next_direction = None
                 self.actor.reset_direction()
@@ -151,7 +151,7 @@ class GhostController(Controller):
         pygame.draw.rect(self.game_state.screen, (100, 0, 100),
                          pygame.Rect(*next_position, *TILE_SIZE))
 
-        if self.mode == 'scatter':
+        if self.game_state.mode() == 'scatter':
             target_position = self.scatter_target() * TILE_SIZE
         else:
             # Chase mode case
