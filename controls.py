@@ -21,7 +21,7 @@ class Controller:
     def control(self, grid: list[list[int]]) -> None:
         raise NotImplementedError
 
-    def draw_debug(self) -> None:
+    def draw_debug(self, screen: pygame.Surface) -> None:
         raise NotImplementedError
 
 
@@ -34,7 +34,7 @@ class InputController(Controller):
             if event.type == pygame.KEYDOWN:
                 self.actor.change_direction(grid, const.DIRECTION.get(event.key))
 
-    def draw_debug(self) -> None:
+    def draw_debug(self, screen: pygame.Surface) -> None:
         pass
 
 
@@ -157,13 +157,12 @@ class GhostController(Controller):
 
         self.mode = self.game.mode()
 
-    def draw_debug(self) -> None:
+    def draw_debug(self, screen: pygame.Surface) -> None:
         if self.state != 'active' or self.mode == 'fright' or self._next_tile is None:
             return
 
         next_position = self._next_tile * const.TILE_SIZE
-        pygame.draw.rect(self.game.screen, (100, 0, 100),
-                         pygame.Rect(*next_position, *const.TILE_SIZE))
+        pygame.draw.rect(screen, (100, 0, 100), pygame.Rect(*next_position, *const.TILE_SIZE))
 
         if self.game.mode() == 'scatter':
             target_position = self.scatter_target() * const.TILE_SIZE
@@ -171,8 +170,7 @@ class GhostController(Controller):
             # Chase mode case
             target_position = self.chase_target() * const.TILE_SIZE
 
-        pygame.draw.rect(self.game.screen, (0, 100, 100),
-                         pygame.Rect(*target_position, *const.TILE_SIZE))
+        pygame.draw.rect(screen, (0, 100, 100), pygame.Rect(*target_position, *const.TILE_SIZE))
 
     def scatter_target(self) -> Vector:
         raise NotImplementedError

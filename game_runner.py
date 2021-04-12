@@ -35,6 +35,7 @@ class Game:
         self.state = GameState(lives)
         actor_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
                         for position, colour in zip(const.GHOST_POS, const.GHOST_COLOURS)]
+
         controls.BlinkyController(self.state, Actor(actor_states[0], False))
         controls.PinkyController(self.state, Actor(actor_states[1], False))
         controls.InkyController(self.state, Actor(actor_states[2], False))
@@ -174,9 +175,9 @@ class Game:
 
     def draw_debug(self) -> None:
         for ghost in self.state.ghosts():
-            ghost.draw_debug()
+            ghost.draw_debug(self.screen)
 
-        self.state.player.draw_debug()
+        self.state.player().draw_debug(self.screen)
 
     def draw_tile(self, tile: str, x: int, y: int, debug: bool = False) -> None:
         position = const.TILE_SIZE * (x, y)
