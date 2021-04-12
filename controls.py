@@ -1,27 +1,24 @@
-from __future__ import annotations
-
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 import random
 import pygame
 
+from game_state import Actor, GameState
 from helpers import grid_distance, within_grid
 from vector import Vector
 import constants as const
 
-# Only imports when type-checking to avoid circular import issues
-if TYPE_CHECKING:
-    import game
-
 
 class Controller:
-    game_state: game.Game
-    actor: game.Actor
+    game: GameState
+    actor: Actor
 
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        self.game_state = game_state
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        self.game = game
         self.actor = actor
 
-    def control(self) -> None:
+        game.controllers.append(self)
+
+    def control(self, grid: list[list[int]]) -> None:
         raise NotImplementedError
 
     def draw_debug(self) -> None:
@@ -29,13 +26,13 @@ class Controller:
 
 
 class InputController(Controller):
-    def control(self) -> None:
-        if self.game_state.events is None:
+    def control(self, grid: list[list[int]]) -> None:
+        if self.game.events is None:
             return
 
-        for event in self.game_state.events:
+        for event in self.game.events:
             if event.type == pygame.KEYDOWN:
-                self.actor.change_direction(self.game_state.grid, const.DIRECTION.get(event.key))
+                self.actor.change_direction(grid, const.DIRECTION.get(event.key))
 
     def draw_debug(self) -> None:
         pass
@@ -49,20 +46,20 @@ class GhostController(Controller):
     state: str
     mode: str
 
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        super().__init__(game_state, actor)
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        super().__init__(game, actor)
         self._next_tile = None
         self._next_direction = None
 
         # self.state in {'inactive', 'home', 'active'}
         self.state = 'inactive'
         # self.mode in {'scatter', 'chase'}
-        self.mode = self.game_state.mode()
+        self.mode = self.game.mode()
         self._is_frightened = False
 
-    def control(self) -> None:
+    def control(self, grid: list[list[int]]) -> None:
         if self.state == 'active':
-            game_mode = self.game_state.mode()
+            game_mode = self.game.mode()
             if self.mode != game_mode and not self._is_frightened:
                 self._next_tile = None
                 self._next_direction = None
@@ -76,7 +73,7 @@ class GhostController(Controller):
             elif self._next_tile is not None and tile != self._next_tile:
                 return
 
-            self.actor.change_direction(self.game_state.grid, self._next_direction)
+            self.actor.change_direction(grid, self._next_direction)
 
             if self._next_tile is None:
                 self._next_tile = tile
@@ -84,16 +81,16 @@ class GhostController(Controller):
                 self._next_tile = tile + self._next_direction
 
             if not self._is_frightened:
-                self.control_target()
+                self.control_target(grid)
             else:
-                self.control_fright()
+                self.control_fright(grid)
         elif self.state == 'home':
             self.control_home()
         elif self.state == 'inactive' and self.check_active():
             self.state = 'home'
 
-    def control_target(self) -> None:
-        self._next_direction = -self.actor.direction
+    def control_target(self, grid: list[list[int]]) -> None:
+        self._next_direction = -self.actor.state.direction
         best_distance = None
 
         for key in const.DIRECTION_ORDER:
@@ -101,7 +98,7 @@ class GhostController(Controller):
             candidate = self._next_tile + direction
 
             if not within_grid(candidate) or candidate == self.actor.tile() or \
-                    self.game_state.grid[candidate.y][candidate.x] in const.BAD_TILES:
+                    grid[candidate.y][candidate.x] in const.BAD_TILES:
                 continue
 
             if self.mode == 'scatter':
@@ -114,35 +111,35 @@ class GhostController(Controller):
                 self._next_direction = direction
                 best_distance = distance
 
-    def control_fright(self) -> None:
+    def control_fright(self, grid: list[list[int]]) -> None:
         candidates = []
         for key in const.DIRECTION_ORDER:
             direction = const.DIRECTION[key]
             candidate = self._next_tile + direction
 
             if within_grid(candidate) and candidate != self.actor.tile() and \
-                    self.game_state.grid[candidate.y][candidate.x] not in const.BAD_TILES:
+                    grid[candidate.y][candidate.x] not in const.BAD_TILES:
                 candidates.append(direction)
 
         if candidates != []:
             self._next_direction = random.choice(candidates)
         else:
-            self._next_direction = -self.actor.direction
+            self._next_direction = -self.actor.state.direction
 
     def control_home(self) -> None:
-        actor_pos = self.actor.position
+        actor_pos = self.actor.state.position
 
         if actor_pos == const.DEFAULT_POS:
             self.state = 'active'
         elif actor_pos.x == const.DEFAULT_POS.x:
-            self.actor.position.lerp(const.DEFAULT_POS, self.actor.speed)
+            actor_pos.lerp(const.DEFAULT_POS, self.actor.state.speed)
         else:
-            self.actor.position.lerp(const.GHOST_POS[1], self.actor.speed)
+            actor_pos.lerp(const.GHOST_POS[1], self.actor.state.speed)
 
     def set_frightened(self, is_frightened: bool) -> None:
         if not self._is_frightened and is_frightened:
-            self.actor.colour = const.FRIGHT
-            self.actor.speed *= 0.5
+            self.actor.state.colour = const.FRIGHT
+            self.actor.state.speed *= 0.5
             self.mode = ''
         elif self._is_frightened and not is_frightened:
             self.actor.reset_colour()
@@ -158,23 +155,23 @@ class GhostController(Controller):
         self._next_tile = None
         self._next_direction = None
 
-        self.mode = self.game_state.mode()
+        self.mode = self.game.mode()
 
     def draw_debug(self) -> None:
         if self.state != 'active' or self.mode == 'fright' or self._next_tile is None:
             return
 
         next_position = self._next_tile * const.TILE_SIZE
-        pygame.draw.rect(self.game_state.screen, (100, 0, 100),
+        pygame.draw.rect(self.game.screen, (100, 0, 100),
                          pygame.Rect(*next_position, *const.TILE_SIZE))
 
-        if self.game_state.mode() == 'scatter':
+        if self.game.mode() == 'scatter':
             target_position = self.scatter_target() * const.TILE_SIZE
         else:
             # Chase mode case
             target_position = self.chase_target() * const.TILE_SIZE
 
-        pygame.draw.rect(self.game_state.screen, (0, 100, 100),
+        pygame.draw.rect(self.game.screen, (0, 100, 100),
                          pygame.Rect(*target_position, *const.TILE_SIZE))
 
     def scatter_target(self) -> Vector:
@@ -188,8 +185,8 @@ class GhostController(Controller):
 
 
 class BlinkyController(GhostController):
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        super().__init__(game_state, actor)
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        super().__init__(game, actor)
         self.state = 'active'
 
     def reset(self) -> None:
@@ -200,15 +197,15 @@ class BlinkyController(GhostController):
         return Vector(25, 0)
 
     def chase_target(self) -> Vector:
-        return self.game_state.player.actor.tile()
+        return self.game.player_actor().tile()
 
     def check_active(self) -> bool:
         return True
 
 
 class PinkyController(GhostController):
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        super().__init__(game_state, actor)
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        super().__init__(game, actor)
         self.state = 'home'
 
     def reset(self) -> None:
@@ -219,27 +216,27 @@ class PinkyController(GhostController):
         return Vector(2, 0)
 
     def chase_target(self) -> Vector:
-        player = self.game_state.player.actor
+        player = self.game.player_actor()
 
-        if player.direction != const.DIRECTION[pygame.K_UP]:
-            return player.tile() + 4 * player.direction
+        if player.state.direction != const.DIRECTION[pygame.K_UP]:
+            return player.tile() + 4 * player.state.direction
         else:
             # Replicates the original bug with Pinky's up-targeting
             return player.tile() + (-4, -4)
 
     def check_active(self) -> bool:
-        if self.game_state.release_level >= 1:
+        if self.game.timers.release_level >= 1:
             return True
 
-        if self.game_state.lost_life:
-            return self.game_state.dot_counter >= 7
+        if self.game.lost_life:
+            return self.game.dot_counter >= 7
         else:
             return True
 
 
 class InkyController(GhostController):
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        super().__init__(game_state, actor)
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        super().__init__(game, actor)
         self.state = 'inactive'
 
     def reset(self) -> None:
@@ -251,24 +248,24 @@ class InkyController(GhostController):
 
     def chase_target(self) -> Vector:
         # Note the original bug with Inky's up-targeting is ignored as effect is insignificant
-        player = self.game_state.player.actor
-        pivot = player.tile() + 2 * player.direction
+        player = self.game.player_actor()
+        pivot = player.tile() + 2 * player.state.direction
 
-        return pivot - (self.game_state.ghosts[0].actor.tile() - pivot)
+        return pivot - (self.game.controllers[0].actor.tile() - pivot)
 
     def check_active(self) -> bool:
-        if self.game_state.release_level >= 2:
+        if self.game.timers.release_level >= 2:
             return True
 
-        if not self.game_state.lost_life:
-            return self.game_state.dot_counter >= 30
+        if not self.game.lost_life:
+            return self.game.dot_counter >= 30
         else:
-            return self.game_state.dot_counter >= 17
+            return self.game.dot_counter >= 17
 
 
 class ClydeController(GhostController):
-    def __init__(self, game_state: game.Game, actor: game.Actor) -> None:
-        super().__init__(game_state, actor)
+    def __init__(self, game: GameState, actor: Actor) -> None:
+        super().__init__(game, actor)
         self.state = 'inactive'
 
     def reset(self) -> None:
@@ -279,7 +276,7 @@ class ClydeController(GhostController):
         return Vector(0, 35)
 
     def chase_target(self) -> Vector:
-        player_tile = self.game_state.player.actor.tile()
+        player_tile = self.game.player_actor().tile()
 
         if grid_distance(self.actor.tile(), player_tile) > 8:
             return player_tile
@@ -287,19 +284,19 @@ class ClydeController(GhostController):
             return Vector(0, 35)
 
     def check_active(self) -> bool:
-        if self.game_state.release_level >= 3:
+        if self.game.timers.release_level >= 3:
             return True
 
-        if not self.game_state.lost_life:
-            return self.game_state.dot_counter >= 60
+        if not self.game.lost_life:
+            return self.game.dot_counter >= 60
         else:
-            return self.game_state.dot_counter >= 32
+            return self.game.dot_counter >= 32
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['random', 'pygame', 'constants', 'game', 'helpers', 'vector'],
+        'extra-imports': ['random', 'pygame', 'constants', 'game_state', 'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']
     })
