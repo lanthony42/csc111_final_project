@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Type, Optional
 import csv
+import random
 import pygame
 
 from game_state import Actor, ActorState, GameState
@@ -30,7 +31,16 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
-            lives: int = const.DEFAULT_LIVES, config: dict = {}) -> int:
+            seed: int = 111, config: dict = None) -> int:
+        # Default configurations
+        if config is None:
+            config = {}
+
+        lives = config.get('lives', const.DEFAULT_LIVES)
+        visual = config.get('visual', True)
+        debug = config.get('debug', False)
+        random.seed(seed)
+
         # Reinitialize
         self.state = GameState(lives)
         actor_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
@@ -43,10 +53,6 @@ class Game:
         player_controller(self.state, Actor())
 
         self.grid = deepcopy(self._default_grid)
-
-        # Default configurations
-        visual = config.get('visual', True)
-        debug = config.get('debug', False)
 
         # Set up screen
         if visual and not pygame.display.get_init():
@@ -205,7 +211,8 @@ class Game:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'csv', 'pygame', 'constants', 'controls', 'game_state', 'vector'],
+        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'constants', 'controls',
+                          'game_state', 'vector'],
         'allowed-io': ['__init__'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']

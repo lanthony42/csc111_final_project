@@ -1,6 +1,9 @@
 """
 TODO:
-    - AI stuff...
+    - Config ghosts, boosts
+    - AI Controller Input Nodes
+    - AI Graph class
+    - AI Controller Output Nodes
 """
 import pygame
 
@@ -10,7 +13,8 @@ import game_runner
 
 if __name__ == '__main__':
     g = game_runner.Game('map.csv')
-    print(g.run(player_controller=controls.BlinkyController, config={'debug': True}))
+    for _ in range(100):
+        print(g.run(player_controller=controls.BlinkyController, config={'visual': True}))
 
     pygame.display.quit()
     pygame.quit()

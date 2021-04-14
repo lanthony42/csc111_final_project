@@ -46,7 +46,7 @@ class Actor:
 
     def change_direction(self, grid: list[list[int]], direction: Vector) -> None:
         if direction in const.DIRECTION.values():
-            if (self.within_cornering(direction) or self.same_axis(direction)) and \
+            if (self.within_cornering() or self.same_axis(direction)) and \
                     self.valid_direction(grid, direction):
                 self.state.direction = direction
                 self._queued_direction = None
@@ -57,7 +57,7 @@ class Actor:
         next_tile = self.tile() + direction
         return within_grid(next_tile) and grid[next_tile.y][next_tile.x] not in const.BAD_TILES
 
-    def within_cornering(self, direction: Vector) -> bool:
+    def within_cornering(self) -> bool:
         tile = self.tile()
 
         if self.cornering:
