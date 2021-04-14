@@ -79,7 +79,7 @@ class AIController(controls.Controller):
             if grid[next_tile.y][next_tile.x] in g_const.BAD_TILES:
                 out.append(ai_const.INACTIVE)
             else:
-                out.append(1 / score_distance)
+                out.append(1 / max(ai_const.ACTIVE, score_distance - ai_const.DOTS_BIAS))
 
             # Check the distances to ghosts in direction
             if targets != []:
@@ -95,6 +95,7 @@ class AIController(controls.Controller):
 
         # Input bias node
         out.append(ai_const.ACTIVE)
+        print(out)
 
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
                         direction: Vector) -> int:

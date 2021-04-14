@@ -6,6 +6,7 @@ POINT_TIMEOUT = 15 * g_const.FPS
 
 ACTIVE = 1.0
 INACTIVE = 0.0
+DOTS_BIAS = 8
 
 
 if __name__ == '__main__':

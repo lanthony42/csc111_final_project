@@ -1,7 +1,8 @@
 """
 TODO:
+    - AI Controller output node functionality
     - AI Graph class
-    - AI Controller Output Nodes
+    - Training method
 """
 import pygame
 
