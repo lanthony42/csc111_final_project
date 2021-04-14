@@ -87,6 +87,15 @@ class AIController(controls.Controller):
             else:
                 out.append(ai_const.INACTIVE)
 
+        # Check if all ghosts are frightened
+        if all(ghost.get_frightened() for ghost in self.game.ghosts()):
+            out.append(ai_const.ACTIVE)
+        else:
+            out.append(ai_const.INACTIVE)
+
+        # Input bias node
+        out.append(ai_const.ACTIVE)
+
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
                         direction: Vector) -> int:
         path_grid = deepcopy(grid)

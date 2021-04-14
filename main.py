@@ -14,7 +14,7 @@ if __name__ == '__main__':
     for _ in range(100):
         print(g.run(player_controller=ai.AIController, config={'has_boosts': True,
                                                                'has_ghosts': True,
-                                                               'is_visual': False,
+                                                               'is_visual': True,
                                                                'is_debug': True}))
 
     pygame.display.quit()

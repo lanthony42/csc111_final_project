@@ -235,7 +235,7 @@ class GameState:
     def player_actor(self) -> Actor:
         return self.controllers[-1].actor
 
-    def ghosts(self) -> list[controls.Controller]:
+    def ghosts(self) -> list[controls.GhostController]:
         return self.controllers[:-1]
 
     def ghosts_actor(self) -> list[Actor]:
