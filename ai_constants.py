@@ -2,7 +2,6 @@ import game_constants as g_const
 
 
 DIRECTION_ROTATE = tuple(g_const.DIRECTION[direction] for direction in g_const.DIRECTION_ORDER * 2)
-
 POINT_TIMEOUT = 15 * g_const.FPS
 
 ACTIVE = 1.0
