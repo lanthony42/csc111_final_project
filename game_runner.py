@@ -78,9 +78,6 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 self.state.timers.start_timer = 0
             elif event.type == pygame.QUIT:
-                pygame.display.quit()
-                pygame.quit()
-
                 return True
         return False
 

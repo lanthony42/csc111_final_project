@@ -1,4 +1,10 @@
+"""
+TODO:
+    - Config for runner
+"""
 import pygame
+
+import controls
 import game_runner
 
 

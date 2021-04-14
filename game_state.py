@@ -46,32 +46,36 @@ class Actor:
 
     def change_direction(self, grid: list[list[int]], direction: Vector) -> None:
         if direction in const.DIRECTION.values():
-            tile = self.tile()
-            next_tile = tile + direction
-
-            if self.cornering:
-                cornering = const.CORNER.get(self.state.direction.int_tuple())
-            else:
-                cornering = (-self.state.speed / 2, self.state.speed / 2)
-
-            if self.state.direction.y != 0:
-                target = tile.y * const.TILE_SIZE.y
-                within_cornering = (target + cornering[0] < self.state.position.y
-                                    < target + cornering[1])
-            elif self.state.direction.x != 0:
-                target = tile.x * const.TILE_SIZE.x
-                within_cornering = (target + cornering[0] < self.state.position.x
-                                    < target + cornering[1])
-            else:
-                within_cornering = True
-            same_axis = abs(self.state.direction.x) == abs(direction.x)
-
-            if within_grid(next_tile) and (within_cornering or same_axis) and \
-                    grid[next_tile.y][next_tile.x] not in const.BAD_TILES:
+            if (self.within_cornering(direction) or self.same_axis(direction)) and \
+                    self.valid_direction(grid, direction):
                 self.state.direction = direction
                 self._queued_direction = None
             else:
                 self._queued_direction = direction
+
+    def valid_direction(self, grid: list[list[int]], direction: Vector) -> bool:
+        next_tile = self.tile() + direction
+        return within_grid(next_tile) and grid[next_tile.y][next_tile.x] not in const.BAD_TILES
+
+    def within_cornering(self, direction: Vector) -> bool:
+        tile = self.tile()
+
+        if self.cornering:
+            cornering = const.CORNER.get(self.state.direction.int_tuple())
+        else:
+            cornering = (-self.state.speed / 2, self.state.speed / 2)
+
+        if self.state.direction.y != 0:
+            target = tile.y * const.TILE_SIZE.y
+            return target + cornering[0] < self.state.position.y < target + cornering[1]
+        elif self.state.direction.x != 0:
+            target = tile.x * const.TILE_SIZE.x
+            return target + cornering[0] < self.state.position.x < target + cornering[1]
+        else:
+            return True
+
+    def same_axis(self, direction: Vector) -> bool:
+        return abs(self.state.direction.x) == abs(direction.x)
 
     def update(self, grid: list[list[int]]) -> None:
         if self._queued_direction is not None:
