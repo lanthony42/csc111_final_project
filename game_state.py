@@ -25,6 +25,7 @@ class ActorState:
 class Actor:
     _default_state: ActorState
     state: ActorState
+
     _queued_direction: Optional[Vector]
     cornering: bool
 
@@ -144,8 +145,10 @@ class TimerState:
     mode_level: int
     round_timer: int
     start_timer: int
+
     release_level: int
     release_timer: int
+
     boost_level: int
     boost_timer: int
 
@@ -207,10 +210,12 @@ class GameState:
     # Player is last element in self.controllers
     controllers: list[controls.Controller]
     events: Optional[list[pygame.event.Event]]
+
     lost_life: bool
     lives: int
     score: int
     dot_counter: int
+
     timers: TimerState
 
     def __init__(self, lives: int) -> None:
