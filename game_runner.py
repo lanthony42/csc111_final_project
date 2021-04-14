@@ -30,7 +30,7 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
-            lives: int = const.DEFAULT_LIVES, visual: bool = True, debug: bool = False) -> int:
+            lives: int = const.DEFAULT_LIVES, config: dict = {}) -> int:
         # Reinitialize
         self.state = GameState(lives)
         actor_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
@@ -43,6 +43,10 @@ class Game:
         player_controller(self.state, Actor())
 
         self.grid = deepcopy(self._default_grid)
+
+        # Default configurations
+        visual = config.get('visual', True)
+        debug = config.get('debug', False)
 
         # Set up screen
         if visual and not pygame.display.get_init():
