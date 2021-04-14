@@ -1,6 +1,5 @@
 """
 TODO:
-    - AI Controller output node functionality
     - AI Graph class
     - Training method
 """

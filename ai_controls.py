@@ -43,7 +43,7 @@ class AIController(controls.Controller):
 
         # Propagate through neural network
         self.get_inputs(grid, directions)
-        self.control_outputs(directions)
+        self.control_outputs(grid, directions)
 
         # Checks if player has been inactive
         self.ticks_alive += 1
@@ -95,7 +95,6 @@ class AIController(controls.Controller):
 
         # Input bias node
         out.append(ai_const.ACTIVE)
-        print(out)
 
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
                         direction: Vector) -> int:
@@ -127,8 +126,11 @@ class AIController(controls.Controller):
     def distance_heuristic(position: Vector, targets: list[Vector]) -> int:
         return min(grid_distance(position, target) for target in targets)
 
-    def control_outputs(self, directions: list[Vector]) -> None:
-        pass
+    def control_outputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
+        net_int = [0, 1, 0, 0]
+
+        dir_index = net_int.index(max(net_int))
+        self.actor.change_direction(grid, directions[dir_index])
 
     def reset(self) -> None:
         self.last_score = (self.game.score, self.ticks_alive)
