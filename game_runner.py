@@ -4,8 +4,11 @@ import csv
 import random
 import pygame
 
+from ai_neural_net import NeuralNetGraph
 from game_state import Actor, ActorState, GameState
 from vector import Vector
+
+import ai_controller
 import game_constants as const
 import controls
 
@@ -31,7 +34,7 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[controls.Controller] = controls.InputController,
-            seed: int = 111, config: dict = None) -> int:
+            neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> int:
         # Default configurations
         if config is None:
             config = {}
@@ -53,7 +56,12 @@ class Game:
             controls.PinkyController(self.state, Actor(ghost_states[1], False))
             controls.InkyController(self.state, Actor(ghost_states[2], False))
             controls.ClydeController(self.state, Actor(ghost_states[3], False))
-        player_controller(self.state, Actor())
+
+        # Attach neural network if AI controlled
+        if issubclass(player_controller, ai_controller.AIController):
+            player_controller(self.state, Actor(), neural_net)
+        else:
+            player_controller(self.state, Actor())
 
         self.grid = deepcopy(self._default_grid)
         if not has_boosts:
@@ -217,8 +225,8 @@ class Game:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'controls', 'game_constants',
-                          'game_state', 'vector'],
+        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'ai_controller', 'ai_neural_net',
+                          'controls', 'game_constants', 'game_state', 'vector'],
         'allowed-io': ['__init__'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']

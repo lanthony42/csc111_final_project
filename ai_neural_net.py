@@ -1,18 +1,11 @@
-import game_constants as g_const
-
-
-DIRECTION_ROTATE = tuple(g_const.DIRECTION[direction] for direction in g_const.DIRECTION_ORDER * 2)
-
-POINT_TIMEOUT = 15 * g_const.FPS
-
-ACTIVE = 1.0
-INACTIVE = 0.0
+class NeuralNetGraph:
+    pass
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['game_constants'],
+        'extra-imports': [],
         'max-line-length': 100,
         'disable': ['E1136']
     })
