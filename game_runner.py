@@ -8,7 +8,7 @@ from ai_neural_net import NeuralNetGraph
 from game_state import Actor, ActorState, GameState
 from vector import Vector
 
-import ai_controller
+import ai_controls
 import game_constants as const
 import controls
 
@@ -58,7 +58,7 @@ class Game:
             controls.ClydeController(self.state, Actor(ghost_states[3], False))
 
         # Attach neural network if AI controlled
-        if issubclass(player_controller, ai_controller.AIController):
+        if issubclass(player_controller, ai_controls.AIController):
             player_controller(self.state, Actor(), neural_net)
         else:
             player_controller(self.state, Actor())
@@ -169,11 +169,9 @@ class Game:
         state.timers.set_start()
         state.timers.set_release()
 
-        for ghost in state.ghosts():
-            ghost.reset()
-            ghost.actor.reset()
-
-        state.player_actor().reset()
+        for controller in state.controllers:
+            controller.reset()
+            controller.actor.reset()
 
     def draw(self, is_debug: bool = False) -> None:
         self.screen.fill((0, 0, 0))
@@ -185,20 +183,16 @@ class Game:
         if is_debug:
             self.draw_debug()
 
-        for ghost in self.state.ghosts():
-            ghost.actor.draw(self.screen, is_debug)
-
-        self.state.player_actor().draw(self.screen, is_debug)
+        for controller in self.state.controllers:
+            controller.actor.draw(self.screen, is_debug)
 
         self.screen.blit(self.font.render(f'Score: {self.state.score}', 1,
                                           (255, 255, 255)), (5, 5))
         pygame.display.update()
 
     def draw_debug(self) -> None:
-        for ghost in self.state.ghosts():
-            ghost.draw_debug(self.screen)
-
-        self.state.player().draw_debug(self.screen)
+        for controller in self.state.controllers:
+            controller.draw_debug(self.screen)
 
     def draw_tile(self, tile: str, x: int, y: int, debug: bool = False) -> None:
         position = const.TILE_SIZE * (x, y)
@@ -225,7 +219,7 @@ class Game:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'ai_controller', 'ai_neural_net',
+        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'ai_controls', 'ai_neural_net',
                           'controls', 'game_constants', 'game_state', 'vector'],
         'allowed-io': ['__init__'],
         'max-line-length': 100,

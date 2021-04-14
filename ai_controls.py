@@ -83,12 +83,9 @@ class AIController(controls.Controller):
 
             # Check the distances to ghosts in direction
             if targets != []:
-                dist = self.a_star_distance(grid, targets, direction)
                 out.append(1 / self.a_star_distance(grid, targets, direction))
             else:
                 out.append(ai_const.INACTIVE)
-
-        print(out)
 
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
                         direction: Vector) -> int:
@@ -103,8 +100,8 @@ class AIController(controls.Controller):
             item = tile_queue.get()
             distance = item.distance + 1
 
-            for direction in g_const.DIRECTION.values():
-                next_tile = item.tile + direction
+            for candidate in g_const.DIRECTION.values():
+                next_tile = item.tile + candidate
 
                 if next_tile in targets:
                     return distance
@@ -123,6 +120,9 @@ class AIController(controls.Controller):
     def control_outputs(self, directions: list[Vector]) -> None:
         pass
 
+    def reset(self) -> None:
+        self.last_score = (self.game.score, self.ticks_alive)
+
     def draw_debug(self, screen: pygame.Surface) -> None:
         pass
 
@@ -130,8 +130,8 @@ class AIController(controls.Controller):
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['pygame', 'ai_constants', 'ai_neural_net', 'controls', 'game_constants',
-                          'game_state', 'helpers', 'vector'],
+        'extra-imports': ['copy', 'queue', 'pygame', 'ai_constants', 'ai_neural_net', 'controls',
+                          'game_constants', 'game_state', 'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136']
     })

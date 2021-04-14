@@ -21,6 +21,9 @@ class Controller:
     def control(self, grid: list[list[int]]) -> None:
         raise NotImplementedError
 
+    def reset(self) -> None:
+        raise NotImplementedError
+
     def draw_debug(self, screen: pygame.Surface) -> None:
         raise NotImplementedError
 
@@ -33,6 +36,9 @@ class InputController(Controller):
         for event in self.game.events:
             if event.type == pygame.KEYDOWN:
                 self.actor.change_direction(grid, const.DIRECTION.get(event.key))
+
+    def reset(self) -> None:
+        pass
 
     def draw_debug(self, screen: pygame.Surface) -> None:
         pass
