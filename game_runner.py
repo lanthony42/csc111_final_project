@@ -6,7 +6,7 @@ import pygame
 
 from game_state import Actor, ActorState, GameState
 from vector import Vector
-import constants as const
+import game_constants as const
 import controls
 
 
@@ -37,31 +37,37 @@ class Game:
             config = {}
 
         lives = config.get('lives', const.DEFAULT_LIVES)
-        visual = config.get('visual', True)
-        debug = config.get('debug', False)
+        has_ghosts = config.get('has_ghosts', True)
+        has_boosts = config.get('has_boosts', True)
+        is_visual = config.get('is_visual', True)
+        is_debug = config.get('is_debug', False)
         random.seed(seed)
 
         # Reinitialize
         self.state = GameState(lives)
-        actor_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
-                        for position, colour in zip(const.GHOST_POS, const.GHOST_COLOURS)]
+        if has_ghosts:
+            ghost_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
+                            for position, colour in zip(const.GHOST_POS, const.GHOST_COLOURS)]
 
-        controls.BlinkyController(self.state, Actor(actor_states[0], False))
-        controls.PinkyController(self.state, Actor(actor_states[1], False))
-        controls.InkyController(self.state, Actor(actor_states[2], False))
-        controls.ClydeController(self.state, Actor(actor_states[3], False))
+            controls.BlinkyController(self.state, Actor(ghost_states[0], False))
+            controls.PinkyController(self.state, Actor(ghost_states[1], False))
+            controls.InkyController(self.state, Actor(ghost_states[2], False))
+            controls.ClydeController(self.state, Actor(ghost_states[3], False))
         player_controller(self.state, Actor())
 
         self.grid = deepcopy(self._default_grid)
+        if not has_boosts:
+            self.grid = [[const.DOT if tile == const.BOOST else tile for tile in row]
+                         for row in self.grid]
 
         # Set up screen
-        if visual and not pygame.display.get_init():
+        if is_visual and not pygame.display.get_init():
             pygame.init()
 
             self.screen = pygame.display.set_mode(const.SCREEN_SIZE.tuple())
             self.font = pygame.font.SysFont('arial', 24)
             pygame.display.set_caption('Pac-Man')
-        elif not visual:
+        elif not is_visual:
             self.screen = None
 
         # Start game loop
@@ -72,8 +78,8 @@ class Game:
 
             game_over = self.update()
 
-            if visual:
-                self.draw(debug)
+            if is_visual:
+                self.draw(is_debug)
                 self.clock.tick(const.FPS)
 
         return {'game_win': self.check_win(), 'score': self.state.score}
@@ -161,20 +167,20 @@ class Game:
 
         state.player_actor().reset()
 
-    def draw(self, debug: bool = False) -> None:
+    def draw(self, is_debug: bool = False) -> None:
         self.screen.fill((0, 0, 0))
 
         for y, row in enumerate(self.grid):
             for x, tile in enumerate(row):
-                self.draw_tile(tile, x, y, debug)
+                self.draw_tile(tile, x, y, is_debug)
 
-        if debug:
+        if is_debug:
             self.draw_debug()
 
         for ghost in self.state.ghosts():
-            ghost.actor.draw(self.screen, debug)
+            ghost.actor.draw(self.screen, is_debug)
 
-        self.state.player_actor().draw(self.screen, debug)
+        self.state.player_actor().draw(self.screen, is_debug)
 
         self.screen.blit(self.font.render(f'Score: {self.state.score}', 1,
                                           (255, 255, 255)), (5, 5))
@@ -211,7 +217,7 @@ class Game:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'constants', 'controls',
+        'extra-imports': ['copy', 'csv', 'random', 'pygame', 'controls', 'game_constants',
                           'game_state', 'vector'],
         'allowed-io': ['__init__'],
         'max-line-length': 100,

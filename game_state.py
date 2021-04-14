@@ -7,7 +7,7 @@ import pygame
 
 from helpers import within_grid
 from vector import Vector
-import constants as const
+import game_constants as const
 
 # Only imports when type-checking to avoid circular import issues
 if TYPE_CHECKING:
@@ -243,8 +243,8 @@ class GameState:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'dataclasses', 'pygame', 'constants', 'controls', 'helpers',
-                          'vector'],
+        'extra-imports': ['copy', 'dataclasses', 'pygame', 'controls', 'game_constants',
+                          'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136']
     })

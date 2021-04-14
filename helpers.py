@@ -1,5 +1,5 @@
 from vector import Vector
-import constants
+import game_constants as const
 
 
 def grid_distance(position: Vector, target: Vector) -> int:
@@ -8,13 +8,13 @@ def grid_distance(position: Vector, target: Vector) -> int:
 
 
 def within_grid(vector: Vector) -> bool:
-    return 0 <= vector.x < constants.GRID_SIZE.x and 0 <= vector.y < constants.GRID_SIZE.y
+    return 0 <= vector.x < const.GRID_SIZE.x and 0 <= vector.y < const.GRID_SIZE.y
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['constants', 'vector'],
+        'extra-imports': ['game_constants', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136']
     })

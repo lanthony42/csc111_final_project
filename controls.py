@@ -5,7 +5,7 @@ import pygame
 from game_state import Actor, GameState
 from helpers import grid_distance, within_grid
 from vector import Vector
-import constants as const
+import game_constants as const
 
 
 class Controller:
@@ -294,7 +294,8 @@ class ClydeController(GhostController):
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['random', 'pygame', 'constants', 'game_state', 'helpers', 'vector'],
+        'extra-imports': ['random', 'pygame', 'game_constants', 'game_state',
+                          'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']
     })
