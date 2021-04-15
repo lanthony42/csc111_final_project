@@ -81,7 +81,8 @@ class NeuralNetGraph:
 
     def add_edge(self, number1: int, number2: int, weight: Union[int, float] = 1) -> None:
         """Add an edge between the two vertices with the given numbers in this graph,
-        with the given weight.
+        with the given weight. The edge will only be added from number1 to number2,
+        creating a directed graph.
 
         Raise a ValueError if number1 or number2 do not appear as vertices in this graph.
         """
@@ -91,13 +92,12 @@ class NeuralNetGraph:
 
             # Add the new edge
             v1.neighbours[v2] = weight
-            v2.neighbours[v1] = weight
         else:
             # We didn't find an existing vertex for both items.
             raise ValueError
 
     def get_weight(self, number1: int, number2: int) -> Union[int, float]:
-        """Return the weight of the edge between the given numbers.
+        """Return the weight of the edge between the given numbers, from number1 to number2.
 
         Return 0 if number1 and number2 are not adjacent.
         """
