@@ -83,9 +83,7 @@ class AIController(game_controls.Controller):
             # Check the distances to ghosts in direction
             if targets != []:
                 distance = self.a_star_distance(grid, targets, direction)
-
-            if targets != [] and distance != -1:
-                inputs.append(1 / distance)
+                inputs.append(max(ai_const.INACTIVE, 1 / distance))
             else:
                 inputs.append(ai_const.INACTIVE)
 
