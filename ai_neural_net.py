@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Any
+
+from typing import Union
+import scipy.special
 
 
 class _WeightedVertex:
@@ -37,6 +39,7 @@ class NeuralNetGraph:
     input_nodes: list[_WeightedVertex]
     output_nodes: list[_WeightedVertex]
     curr_num: int
+    fitness: int
 
     def __init__(self, input_size: int, output_size: int) -> None:
         """Initialize an empty graph (no vertices or edges)."""
@@ -45,6 +48,7 @@ class NeuralNetGraph:
         self.input_nodes = []
         self.output_nodes = []
         self.curr_num = 0
+        self.fitness = 0
 
         for _ in range(input_size):
             self.add_input_node()
@@ -58,7 +62,7 @@ class NeuralNetGraph:
         The new input node is not adjacent to any other vertices.
         """
         self.curr_num += 1
-        new_vertex = InputNode(self.curr_num, 'input')
+        new_vertex = _WeightedVertex(self.curr_num, 'input')
 
         self._vertices[self.curr_num] = new_vertex
         self.input_nodes.append(new_vertex)
@@ -69,7 +73,7 @@ class NeuralNetGraph:
         The new hidden node is not adjacent to any other vertices.
         """
         self.curr_num += 1
-        new_vertex = InputNode(self.curr_num, 'hidden')
+        new_vertex = _WeightedVertex(self.curr_num, 'hidden')
         self._vertices[self.curr_num] = new_vertex
 
     def add_output_node(self) -> None:
@@ -78,7 +82,7 @@ class NeuralNetGraph:
         The new output node is not adjacent to any other vertices.
         """
         self.curr_num += 1
-        new_vertex = InputNode(self.curr_num, 'output')
+        new_vertex = _WeightedVertex(self.curr_num, 'output')
 
         self._vertices[self.curr_num] = new_vertex
         self.output_nodes.append(new_vertex)
@@ -94,7 +98,7 @@ class NeuralNetGraph:
             v1 = self._vertices[number1]
             v2 = self._vertices[number2]
 
-            # Add the new edge
+            # Add the new directed edge
             v1.neighbours[v2] = weight
         else:
             # We didn't find an existing vertex for both items.
@@ -111,15 +115,30 @@ class NeuralNetGraph:
         return v1.neighbours.get(v2, 0)
 
     def propagate_outputs(self) -> None:
-        pass
+        for node in self.output_nodes:
+            self._propagate_node(node, set())
+
+    def _propagate_node(self, curr_node: _WeightedVertex, visited: set()) -> None:
+        if curr_node.kind == 'input':
+            return
+
+        visited.add(curr_node.number)
+        value = 0
+
+        for node, weight in curr_node.neighbours.items():
+            if node.number not in visited:
+                self._propagate_node(node, visited)
+            value += node.value * weight
+
+        curr_node.value = scipy.special.expit(value)
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': [],
+        'extra-imports': ['scipy.special'],
         'max-line-length': 100,
-        'disable': ['E1136']
+        'disable': ['E1136', 'E1101']
     })
 
     import python_ta.contracts

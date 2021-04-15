@@ -69,14 +69,12 @@ class Game:
                          for row in self.grid]
 
         # Set up screen
-        if is_visual and not pygame.display.get_init():
+        if is_visual:
             pygame.init()
 
             self.screen = pygame.display.set_mode(const.SCREEN_SIZE.tuple())
             self.font = pygame.font.SysFont('arial', 24)
             pygame.display.set_caption('Pac-Man')
-        elif not is_visual:
-            self.screen = None
 
         # Start game loop
         game_over = False

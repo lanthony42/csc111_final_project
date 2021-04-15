@@ -24,6 +24,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\ai_neural_net.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\ai_trainer.py">
           <value>
             <Attribute>
