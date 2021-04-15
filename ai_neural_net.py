@@ -7,6 +7,8 @@ class _WeightedVertex:
     """
     number: int
     kind: str
+    value: float
+
     neighbours: dict[_WeightedVertex, Union[int, float]]
 
     def __init__(self, number: int, kind: str) -> None:
@@ -18,6 +20,7 @@ class _WeightedVertex:
         """
         self.number = number
         self.kind = kind
+        self.value = 0
 
         self.neighbours = {}
 
@@ -38,6 +41,7 @@ class NeuralNetGraph:
     def __init__(self, input_size: int, output_size: int) -> None:
         """Initialize an empty graph (no vertices or edges)."""
         self._vertices = {}
+
         self.input_nodes = []
         self.output_nodes = []
         self.curr_num = 0
