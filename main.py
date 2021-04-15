@@ -3,19 +3,22 @@ TODO:
     - AI Graph class
     - Training method
 """
+from time import time
 import pygame
 
 import ai_constants as const
 import ai_controls
 import ai_neural_net
 import ai_trainer
+import game_controls
 import game_runner
 
 
 def test_game():
     game = game_runner.Game('data/map.csv')
     for _ in range(20):
-        outcome = game.run(config={'is_visual': False})
+        outcome = game.run(player_controller=game_controls.BlinkyController,
+                           config={'is_visual': False})
         print(outcome)
 
         if outcome['force_quit']:
@@ -47,6 +50,8 @@ def test_train():
 
 
 if __name__ == '__main__':
-    # test_game()
-    test_ai()
+    t = time()
+    test_game()
+    # test_ai()
     # test_train()
+    print(time() - t)
