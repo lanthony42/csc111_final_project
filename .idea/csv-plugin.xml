@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\ai_trainer.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\constants.py">
           <value>
             <Attribute>

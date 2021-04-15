@@ -34,7 +34,7 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[game_controls.Controller] = game_controls.InputController,
-            neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> int:
+            neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> dict:
         # Default configurations
         if config is None:
             config = {}
@@ -90,7 +90,12 @@ class Game:
                 self.draw(is_debug)
                 self.clock.tick(const.FPS)
 
-        return {'game_win': self.check_win(), 'score': self.state.score}
+        output = {'game_win': self.check_win(), 'score': self.state.score,
+                  'force_quit': not game_over}
+        if issubclass(player_controller, ai_controls.AIController):
+            output['time_alive'] = round(self.state.player().ticks_alive / const.FPS)
+
+        return output
 
     def handle_input(self) -> bool:
         if not pygame.display.get_init():
