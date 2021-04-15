@@ -82,7 +82,10 @@ class AIController(game_controls.Controller):
 
             # Check the distances to ghosts in direction
             if targets != []:
-                inputs.append(1 / self.a_star_distance(grid, targets, direction))
+                distance = self.a_star_distance(grid, targets, direction)
+
+            if targets != [] and distance != -1:
+                inputs.append(1 / distance)
             else:
                 inputs.append(ai_const.INACTIVE)
 
@@ -103,10 +106,13 @@ class AIController(game_controls.Controller):
                         direction: Vector) -> int:
         path_grid = deepcopy(grid)
         tile_queue = PriorityQueue()
-        tile = self.actor.tile()
 
-        tile_queue.put(TileItem(0, 0, tile + direction))
+        tile = self.actor.tile()
         path_grid[tile.y][tile.x] = g_const.OUT
+
+        next_tile = tile + direction
+        if path_grid[next_tile.y][next_tile.x] not in g_const.BAD_TILES:
+            tile_queue.put(TileItem(0, 0, next_tile))
 
         while not tile_queue.empty():
             item = tile_queue.get()

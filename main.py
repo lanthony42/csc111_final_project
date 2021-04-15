@@ -14,8 +14,8 @@ import game_runner
 
 def test_game():
     game = game_runner.Game('data/map.csv')
-    for _ in range(5):
-        outcome = game.run(config={'is_visual': True})
+    for _ in range(20):
+        outcome = game.run(config={'is_visual': False})
         print(outcome)
 
         if outcome['force_quit']:
@@ -27,11 +27,11 @@ def test_game():
 
 def test_ai():
     game = game_runner.Game('data/map.csv')
-    for _ in range(5):
+    for _ in range(20):
         outcome = game.run(player_controller=ai_controls.AIController,
                            neural_net=ai_neural_net.NeuralNetGraph(const.INPUT_SIZE,
                                                                    const.OUTPUT_SIZE),
-                           config={'is_visual': True})
+                           config={'is_visual': False})
         print(outcome)
 
         if outcome['force_quit']:
