@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\ai_controls.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\ai_trainer.py">
           <value>
             <Attribute>
@@ -95,6 +102,13 @@
           </value>
         </entry>
         <entry key="\map.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\neural_net.py">
           <value>
             <Attribute>
               <option name="separator" value="," />

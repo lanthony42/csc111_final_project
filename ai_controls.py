@@ -43,6 +43,7 @@ class AIController(game_controls.Controller):
 
         # Propagate through neural network
         self.get_inputs(grid, directions)
+        self.neural_net.propagate_outputs()
         self.control_outputs(grid, directions)
 
         # Checks if player has been inactive
@@ -54,7 +55,7 @@ class AIController(game_controls.Controller):
             self.game.lives = 0
 
     def get_inputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
-        out = []
+        inputs = []
         tile = self.actor.tile()
         target_tiles = {g_const.WALL, g_const.DOOR, g_const.OUT, g_const.DOT, g_const.BOOST}
         targets = [ghost.actor.tile() for ghost in self.game.ghosts() if ghost.state != 'inactive']
@@ -64,11 +65,9 @@ class AIController(game_controls.Controller):
 
             # Check if can move in this direction
             if not within_grid(next_tile) or grid[next_tile.y][next_tile.x] in g_const.BAD_TILES:
-                out.append(ai_const.ACTIVE)
-                out.append(ai_const.INACTIVE)
-                continue
+                inputs.append(ai_const.ACTIVE)
             else:
-                out.append(ai_const.INACTIVE)
+                inputs.append(ai_const.INACTIVE)
 
             # Check if score can be increased in this direction
             score_distance = 1
@@ -77,24 +76,28 @@ class AIController(game_controls.Controller):
                 score_distance += 1
 
             if grid[next_tile.y][next_tile.x] in g_const.BAD_TILES:
-                out.append(ai_const.INACTIVE)
+                inputs.append(ai_const.INACTIVE)
             else:
-                out.append(1 / max(ai_const.ACTIVE, score_distance - ai_const.DOTS_BIAS))
+                inputs.append(1 / max(ai_const.ACTIVE, score_distance - ai_const.DOTS_BIAS))
 
             # Check the distances to ghosts in direction
             if targets != []:
-                out.append(1 / self.a_star_distance(grid, targets, direction))
+                inputs.append(1 / self.a_star_distance(grid, targets, direction))
             else:
-                out.append(ai_const.INACTIVE)
+                inputs.append(ai_const.INACTIVE)
 
         # Check if all ghosts are frightened
         if all(ghost.get_frightened() for ghost in self.game.ghosts()):
-            out.append(ai_const.ACTIVE)
+            inputs.append(ai_const.ACTIVE)
         else:
-            out.append(ai_const.INACTIVE)
+            inputs.append(ai_const.INACTIVE)
 
         # Input bias node
-        out.append(ai_const.ACTIVE)
+        inputs.append(ai_const.ACTIVE)
+
+        # Place input into input nodes
+        for node, value in zip(self.neural_net.input_nodes, inputs):
+            node.value = value
 
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
                         direction: Vector) -> int:
@@ -127,10 +130,12 @@ class AIController(game_controls.Controller):
         return min(grid_distance(position, target) for target in targets)
 
     def control_outputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
-        net_int = [0, 1, 0, 0]
+        net_int = [node.value for node in self.neural_net.output_nodes]
+        max_value = max(net_int)
 
-        dir_index = net_int.index(max(net_int))
-        self.actor.change_direction(grid, directions[dir_index])
+        if max_value >= ai_const.THRESHOLD:
+            dir_index = net_int.index(max_value)
+            self.actor.change_direction(grid, directions[dir_index])
 
     def reset(self) -> None:
         self.last_score = (self.game.score, self.ticks_alive)
