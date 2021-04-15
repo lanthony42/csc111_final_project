@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Union, List
+from typing import Union
+import csv
 import scipy.special
 from math import sqrt
 from numpy import mean
@@ -28,6 +29,17 @@ class _WeightedVertex:
         self.value = 0
 
         self.neighbours = {}
+
+    def get_connections(self) -> list[tuple[int, int, float]]:
+        if self.kind == 'input':
+            return []
+
+        out = []
+        for node, weight in self.neighbours.items():
+            out.append((self.number, node.number, weight))
+            out.extend(node.get_connections())
+
+        return out
 
     def degree(self) -> int:
         """Return the degree of this vertex."""
@@ -59,7 +71,7 @@ class NeuralNetGraph:
         for _ in range(output_size):
             self.add_output_node()
 
-    def add_input_node(self) -> None:
+    def add_input_node(self) -> int:
         """Add an input node with the given number to this graph.
 
         The new input node is not adjacent to any other vertices.
@@ -70,7 +82,9 @@ class NeuralNetGraph:
         self._vertices[self.curr_num] = new_vertex
         self.input_nodes.append(new_vertex)
 
-    def add_hidden_node(self) -> None:
+        return self.curr_num
+
+    def add_hidden_node(self) -> int:
         """Add a hidden node with the given item to this graph.
 
         The new hidden node is not adjacent to any other vertices.
@@ -79,7 +93,9 @@ class NeuralNetGraph:
         new_vertex = _WeightedVertex(self.curr_num, 'hidden')
         self._vertices[self.curr_num] = new_vertex
 
-    def add_output_node(self) -> None:
+        return self.curr_num
+
+    def add_output_node(self) -> int:
         """Add an output node with the given item to this graph.
 
         The new output node is not adjacent to any other vertices.
@@ -89,6 +105,8 @@ class NeuralNetGraph:
 
         self._vertices[self.curr_num] = new_vertex
         self.output_nodes.append(new_vertex)
+
+        return self.curr_num
 
     def add_edge(self, number1: int, number2: int, weight: Union[int, float] = 1) -> None:
         """Add an edge between the two vertices with the given numbers in this graph,
@@ -117,6 +135,14 @@ class NeuralNetGraph:
 
         return v1.neighbours.get(v2, 0)
 
+    def get_connections(self) -> list[tuple[int, int, float]]:
+        out = []
+
+        for node in self.output_nodes:
+            out.extend(node.get_connections())
+
+        return out
+
     def propagate_outputs(self) -> None:
         for node in self.output_nodes:
             self._propagate_node(node, set())
@@ -136,7 +162,38 @@ class NeuralNetGraph:
         curr_node.value = scipy.special.expit(value)
 
 
-def create_neural_network(size_l: List[int]) -> tuple[NeuralNetGraph, List]:
+def load_neural_network(file_path: str) -> NeuralNetGraph:
+    with open(file_path) as csv_file:
+        reader = csv.reader(csv_file)
+
+        initial_sizes = next(reader)
+        connections = list(reader)
+
+        input_size = int(initial_sizes[0])
+        output_size = int(initial_sizes[1])
+        neural_net = NeuralNetGraph(input_size, output_size)
+
+        # Find and add all hidden layer nodes
+        hidden_count = len(set(connect[0] for connect in connections
+                               if int(connect[0]) > input_size + output_size))
+        for _ in range(hidden_count):
+            neural_net.add_hidden_node()
+
+        for connection in connections:
+            neural_net.add_edge(int(connection[0]), int(connection[1]), float(connection[2]))
+
+        return neural_net
+
+
+def save_neural_network(neural_net: NeuralNetGraph, file_path: str) -> None:
+    with open(file_path, 'w+', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        connections = [(len(neural_net.input_nodes), len(neural_net.output_nodes))]
+
+        writer.writerows(connections + neural_net.get_connections())
+
+
+def create_neural_network(size_l: list[int]) -> tuple[NeuralNetGraph, list]:
     """Creates a graph for the neural network,
     size_l is a list containing the sizes of each layer"""
     new_graph = NeuralNetGraph(size_l[0], size_l[-1])
@@ -163,7 +220,6 @@ def create_neural_network(size_l: List[int]) -> tuple[NeuralNetGraph, List]:
             for num1 in range(0, n1):
                 new_graph.add_edge(layers[i][num2], layers[i - 1][num1], weights[num2][num1])
 
-
     n3 = size_l[-2]
     n4 = size_l[-1]
     lower, upper = -(1.0 / sqrt(n3)), (1.0 / sqrt(n3))
@@ -176,16 +232,18 @@ def create_neural_network(size_l: List[int]) -> tuple[NeuralNetGraph, List]:
 
     return (new_graph, weights_list[::-1])
 
+
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['scipy.special'],
+        'extra-imports': ['csv', 'scipy.special'],
+        'allowed-io': ['load_neural_network', 'save_neural_network'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']
     })
 
     import python_ta.contracts
-    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.DEBUG_CONTRACTS = False
     python_ta.contracts.check_all_contracts()
 
     import doctest
