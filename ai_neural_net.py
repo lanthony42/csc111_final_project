@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
-from typing import List
+from typing import Union, List
 import scipy.special
 from math import sqrt
 from numpy import mean
@@ -137,7 +136,7 @@ class NeuralNetGraph:
         curr_node.value = scipy.special.expit(value)
 
 
-def create_neural_network(size_l: List[int]) -> NeuralNetGraph:
+def create_neural_network(size_l: List[int]) -> tuple[NeuralNetGraph, List]:
     """Creates a graph for the neural network,
     size_l is a list containing the sizes of each layer"""
     new_graph = NeuralNetGraph(size_l[0], size_l[-1])
@@ -150,28 +149,32 @@ def create_neural_network(size_l: List[int]) -> NeuralNetGraph:
 
     layers.append([node.number for node in new_graph.output_nodes])
 
+    weights_list = []
+
     for i in range(1, len(size_l) - 1):
         n1 = size_l[i - 1]
         n2 = size_l[i]
         lower, upper = -(1.0 / sqrt(n1)), (1.0 / sqrt(n1))
-        random_numbers = rand(n2, n1)
+        weights = rand(n2, n1)
+        weights_list.append(weights)
 
         for num2 in range(0, n2):
             new_graph.add_hidden_node()
             for num1 in range(0, n1):
-                new_graph.add_edge(layers[i][num2], layers[i - 1][num1], random_numbers[num2][num1])
+                new_graph.add_edge(layers[i][num2], layers[i - 1][num1], weights[num2][num1])
 
 
     n3 = size_l[-2]
     n4 = size_l[-1]
     lower, upper = -(1.0 / sqrt(n3)), (1.0 / sqrt(n3))
-    random_numbers = rand(n4, n3)
+    weights = rand(n4, n3)
+    weights_list.append(weights)
 
     for num4 in range(0, n4):
         for num3 in range(0, n3):
-            new_graph.add_edge(layers[-1][num4], layers[-2][num3], random_numbers[num4][num3])
+            new_graph.add_edge(layers[-1][num4], layers[-2][num3], weights[num4][num3])
 
-    return new_graph
+    return (new_graph, weights_list[::-1])
 
 if __name__ == '__main__':
     import python_ta
