@@ -11,7 +11,7 @@ import game_constants as const
 
 # Only imports when type-checking to avoid circular import issues
 if TYPE_CHECKING:
-    import controls
+    import game_controls
 
 
 @dataclass
@@ -208,7 +208,7 @@ class TimerState:
 
 class GameState:
     # Player is last element in self.controllers
-    controllers: list[controls.Controller]
+    controllers: list[game_controls.Controller]
     events: Optional[list[pygame.event.Event]]
 
     lost_life: bool
@@ -229,13 +229,13 @@ class GameState:
         self.dot_counter = 0
         self.timers = TimerState()
 
-    def player(self) -> controls.Controller:
+    def player(self) -> game_controls.Controller:
         return self.controllers[-1]
 
     def player_actor(self) -> Actor:
         return self.controllers[-1].actor
 
-    def ghosts(self) -> list[controls.GhostController]:
+    def ghosts(self) -> list[game_controls.GhostController]:
         return self.controllers[:-1]
 
     def ghosts_actor(self) -> list[Actor]:
@@ -248,7 +248,7 @@ class GameState:
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'dataclasses', 'pygame', 'controls', 'game_constants',
+        'extra-imports': ['copy', 'dataclasses', 'pygame', 'game_constants', 'game_controls',
                           'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136']

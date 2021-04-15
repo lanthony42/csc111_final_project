@@ -11,7 +11,7 @@ from vector import Vector
 
 import ai_constants as ai_const
 import game_constants as g_const
-import controls
+import game_controls
 
 
 @dataclass(order=True)
@@ -21,7 +21,7 @@ class TileItem:
     tile: Vector = field(compare=False)
 
 
-class AIController(controls.Controller):
+class AIController(game_controls.Controller):
     neural_net: Optional[NeuralNetGraph]
     ticks_alive: int
     last_score: tuple[int, int]
@@ -142,8 +142,8 @@ class AIController(controls.Controller):
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['copy', 'queue', 'pygame', 'ai_constants', 'ai_neural_net', 'controls',
-                          'game_constants', 'game_state', 'helpers', 'vector'],
+        'extra-imports': ['copy', 'queue', 'pygame', 'ai_constants', 'ai_neural_net',
+                          'game_constants', 'game_controls', 'game_state', 'helpers', 'vector'],
         'max-line-length': 100,
         'disable': ['E1136']
     })

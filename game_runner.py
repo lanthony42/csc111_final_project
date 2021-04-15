@@ -10,7 +10,7 @@ from vector import Vector
 
 import ai_controls
 import game_constants as const
-import controls
+import game_controls
 
 
 class Game:
@@ -33,7 +33,7 @@ class Game:
             self._default_grid = list(reader)
         self.grid = []
 
-    def run(self, player_controller: Type[controls.Controller] = controls.InputController,
+    def run(self, player_controller: Type[game_controls.Controller] = game_controls.InputController,
             neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> int:
         # Default configurations
         if config is None:
@@ -52,10 +52,10 @@ class Game:
             ghost_states = [ActorState(position, Vector(0, 0), colour, const.DEFAULT_SPEED)
                             for position, colour in zip(const.GHOST_POS, const.GHOST_COLOURS)]
 
-            controls.BlinkyController(self.state, Actor(ghost_states[0], False))
-            controls.PinkyController(self.state, Actor(ghost_states[1], False))
-            controls.InkyController(self.state, Actor(ghost_states[2], False))
-            controls.ClydeController(self.state, Actor(ghost_states[3], False))
+            game_controls.BlinkyController(self.state, Actor(ghost_states[0], False))
+            game_controls.PinkyController(self.state, Actor(ghost_states[1], False))
+            game_controls.InkyController(self.state, Actor(ghost_states[2], False))
+            game_controls.ClydeController(self.state, Actor(ghost_states[3], False))
 
         # Attach neural network if AI controlled
         if issubclass(player_controller, ai_controls.AIController):
@@ -220,7 +220,7 @@ if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
         'extra-imports': ['copy', 'csv', 'random', 'pygame', 'ai_controls', 'ai_neural_net',
-                          'controls', 'game_constants', 'game_state', 'vector'],
+                          'game_constants', 'game_controls', 'game_state', 'vector'],
         'allowed-io': ['__init__'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']
