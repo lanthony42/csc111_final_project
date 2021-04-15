@@ -14,18 +14,18 @@ import game_controls
 import game_runner
 
 
-def test_game():
-    game = game_runner.Game('data/map.csv')
-    for _ in range(20):
-        outcome = game.run(player_controller=game_controls.BlinkyController,
-                           config={'is_visual': False})
-        print(outcome)
-
-        if outcome['force_quit']:
-            break
-
-    pygame.display.quit()
-    pygame.quit()
+# def test_game():
+#     game = game_runner.Game('data/map.csv')
+#     for _ in range(20):
+#         outcome = game.run(player_controller=game_controls.BlinkyController,
+#                            config={'is_visual': False})
+#         print(outcome)
+#
+#         if outcome['force_quit']:
+#             break
+#
+#     pygame.display.quit()
+#     pygame.quit()
 
 
 def test_ai():
@@ -51,7 +51,7 @@ def test_train():
 
 if __name__ == '__main__':
     t = time()
-    test_game()
-    # test_ai()
+    # test_game()
+    test_ai()
     # test_train()
     print(time() - t)
