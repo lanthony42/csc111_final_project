@@ -49,6 +49,7 @@ class GhostController(Controller):
     _next_direction: Optional[Vector]
     _is_frightened: bool
 
+    home_timer: int
     state: str
     mode: str
 
@@ -56,6 +57,7 @@ class GhostController(Controller):
         super().__init__(game, actor)
         self._next_tile = None
         self._next_direction = None
+        self.home_timer = 0
 
         # self.state in {'inactive', 'home', 'active'}
         self.state = 'inactive'
@@ -133,6 +135,10 @@ class GhostController(Controller):
             self._next_direction = -self.actor.state.direction
 
     def control_home(self) -> None:
+        if self.home_timer > 0:
+            self.home_timer -= 1
+            return
+
         actor_pos = self.actor.state.position
 
         if actor_pos == const.DEFAULT_POS:
@@ -162,6 +168,7 @@ class GhostController(Controller):
         self._next_direction = None
 
         self.mode = self.game.mode()
+        self.home_timer = 0
 
     def draw_debug(self, screen: pygame.Surface) -> None:
         if self.state != 'active' or self.mode == 'fright' or self._next_tile is None:

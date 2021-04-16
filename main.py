@@ -19,7 +19,7 @@ import title
 def test_game():
     game = game_runner.Game('data/map.csv')
     for _ in range(20):
-        outcome = game.run(config={'has_ghosts': False, 'has_boosts': False, 'is_visual': True})
+        outcome = game.run(config={'has_ghosts': True, 'has_boosts': True, 'is_visual': True})
         print(outcome)
 
         if outcome['force_quit']:
@@ -53,6 +53,6 @@ if __name__ == '__main__':
     t = time()
     # test_game()
     # test_ai()
-    test_train()
-    # title.menu.mainloop(title.surface)
+    # test_train()
+    title.menu.mainloop(title.surface)
     print(time() - t)

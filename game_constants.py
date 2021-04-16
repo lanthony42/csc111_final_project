@@ -11,7 +11,7 @@ SCREEN_SIZE = TILE_SIZE * GRID_SIZE
 # Gameplay Constants
 DOT_SCORE = 10
 BOOST_SCORE = 50
-GHOST_SCORE = (20, 40, 80, 160)
+GHOST_SCORE = (50, 100, 200, 400)
 DEFAULT_LIVES = 3
 FPS = 24
 
@@ -66,6 +66,7 @@ ROUND_PATTERN = ((7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (7 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (5 * FPS, 'scatter'), (20 * FPS, 'chase'),
                  (5 * FPS, 'scatter'), (None, 'chase'))
+HOME_TIME = 2 * FPS
 
 
 if __name__ == '__main__':

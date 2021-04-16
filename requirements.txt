@@ -9,3 +9,6 @@ python-ta~=1.6.3
 plotly~=4.14.1
 pygame~=2.0.1
 pygame-menu~=4.0.2
+
+# Miscellaneous
+scipy~=1.6.1
