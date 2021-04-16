@@ -185,9 +185,6 @@ class AITrainer:
             save_neural_network(self.ai_tree.best_descendant, graph_path)
             print('Saved!')
 
-        pygame.display.quit()
-        pygame.quit()
-
     def simulate(self, network: NeuralNetGraph, config: Optional[dict[str, Any]] = None) -> bool:
         outcome = self.game.run(player_controller=AIController, neural_net=network, config=config)
 
