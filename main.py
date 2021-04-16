@@ -13,6 +13,8 @@ import ai_trainer
 import game_controls
 import game_runner
 
+import title
+
 
 def test_game():
     game = game_runner.Game('data/map.csv')
@@ -51,5 +53,6 @@ if __name__ == '__main__':
     t = time()
     # test_game()
     # test_ai()
-    test_train()
+    # test_train()
+    title.menu.mainloop(title.surface)
     print(time() - t)
