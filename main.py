@@ -46,13 +46,13 @@ def test_ai():
 
 def test_train():
     trainer = ai_trainer.AITrainer()
-    trainer.start_training(graph_path='data/test.csv', is_visual=False)
+    trainer.start_training(input_path='data/test.csv', output_path='data/new.csv', is_visual=False)
 
 
 if __name__ == '__main__':
     t = time()
     # test_game()
     # test_ai()
-    # test_train()
-    title.menu.mainloop(title.surface)
+    test_train()
+    # title.menu.mainloop(title.surface)
     print(time() - t)
