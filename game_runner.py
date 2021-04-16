@@ -34,17 +34,19 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[game_controls.Controller] = game_controls.InputController,
-            neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> dict:
+            neural_net: NeuralNetGraph = None, seed: Optional[int] = None,
+            config: dict = None) -> dict:
         # Default configurations
         if config is None:
             config = {}
+        if seed is not None:
+            random.seed(seed)
 
         lives = config.get('lives', const.DEFAULT_LIVES)
         has_ghosts = config.get('has_ghosts', True)
         has_boosts = config.get('has_boosts', True)
         is_visual = config.get('is_visual', True)
         is_debug = config.get('is_debug', False)
-        #random.seed(seed)
 
         # Reinitialize
         self.state = GameState(lives)
@@ -132,6 +134,7 @@ class Game:
             is_collide = state.player_actor().rect().colliderect(ghost.actor.rect())
             if is_collide and ghost.get_frightened():
                 ghost.set_frightened(False)
+                ghost.home_timer = const.HOME_TIME
                 ghost.state = 'home'
 
                 ghost.actor.reset(const.HOME_POS)
@@ -186,8 +189,10 @@ class Game:
         if is_debug:
             self.draw_debug()
 
-        for controller in self.state.controllers:
-            controller.actor.draw(self.screen, is_debug)
+        for ghost in self.state.ghosts():
+            if ghost.home_timer <= 0:
+                ghost.actor.draw(self.screen, is_debug)
+        self.state.player_actor().draw(self.screen, is_debug)
 
         self.screen.blit(self.font.render(f'Score: {self.state.score}', 1,
                                           (255, 255, 255)), (5, 5))

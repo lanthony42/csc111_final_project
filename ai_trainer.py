@@ -118,8 +118,8 @@ class AITrainer:
         self.has_won = False
 
     def start_training(self, input_path: Optional[str] = None, output_path: Optional[str] = None,
-                       is_visual: bool = False) -> None:
-        self.training_stage = const.GHOST_STAGE
+                       starting_stage: int = const.GHOST_STAGE, is_visual: bool = False) -> None:
+        self.training_stage = starting_stage
         self.has_won = False
 
         # Initialize AI Tree
@@ -168,7 +168,6 @@ class AITrainer:
             if self.rolling_average() > self.best_fitness[0]:
                 self.best_fitness = (self.rolling_average(), iteration)
             elif iteration - self.best_fitness[1] > const.STALENESS_THRESHOLD:
-                print('death')
                 self.ai_tree.extinction()
                 self.best_fitness = (self.rolling_average(), iteration)
             iteration += 1
