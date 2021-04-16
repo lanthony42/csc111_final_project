@@ -34,17 +34,19 @@ class Game:
         self.grid = []
 
     def run(self, player_controller: Type[game_controls.Controller] = game_controls.InputController,
-            neural_net: NeuralNetGraph = None, seed: int = 111, config: dict = None) -> dict:
+            neural_net: NeuralNetGraph = None, seed: Optional[int] = None,
+            config: dict = None) -> dict:
         # Default configurations
         if config is None:
             config = {}
+        if seed is not None:
+            random.seed(seed)
 
         lives = config.get('lives', const.DEFAULT_LIVES)
         has_ghosts = config.get('has_ghosts', True)
         has_boosts = config.get('has_boosts', True)
         is_visual = config.get('is_visual', True)
         is_debug = config.get('is_debug', False)
-        #random.seed(seed)
 
         # Reinitialize
         self.state = GameState(lives)

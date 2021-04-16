@@ -31,28 +31,32 @@ def test_game():
 
 def test_ai():
     game = game_runner.Game('data/map.csv')
-    for _ in range(20):
+    seed = 0
+    while True:
+        seed += 1
         net = ai_neural_net.load_neural_network('data/test.csv')
         outcome = game.run(player_controller=ai_controls.AIController, neural_net=net,
-                           config={'is_visual': True})
+                           seed=seed, config={'is_visual': False})
         print(outcome)
 
-        if outcome['force_quit']:
+        if outcome['force_quit'] or outcome['game_win']:
             break
 
+    print(seed)
     pygame.display.quit()
     pygame.quit()
 
 
 def test_train():
     trainer = ai_trainer.AITrainer()
-    trainer.start_training(input_path='data/test.csv', output_path='data/new.csv', is_visual=False)
+    trainer.start_training(input_path='data/test.csv', output_path='data/new.csv',
+                           starting_stage=const.BOOST_STAGE, is_visual=False)
 
 
 if __name__ == '__main__':
     t = time()
     # test_game()
-    # test_ai()
+    test_ai()
     # test_train()
-    title.menu.mainloop(title.surface)
+    # title.menu.mainloop(title.surface)
     print(time() - t)
