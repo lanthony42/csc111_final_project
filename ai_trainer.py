@@ -168,7 +168,7 @@ class AITrainer:
             if self.rolling_average() > self.best_fitness[0]:
                 self.best_fitness = (self.rolling_average(), iteration)
             elif iteration - self.best_fitness[1] > const.STALENESS_THRESHOLD:
-                print('deathhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
+                print('death')
                 self.ai_tree.extinction()
                 self.best_fitness = (self.rolling_average(), iteration)
             iteration += 1

@@ -20,6 +20,12 @@ surface = pygame.display.set_mode((height, width))
 
 game = game_runner.Game('data/map.csv')
 
+effect = pygame_menu.widgets.selection.highlight.HighlightSelection()
+font = pygame_menu.font.FONT_FRANCHISE
+mytheme = pygame_menu.Theme(background_color=(0, 0, 0), title_background_color=(255, 145, 0),
+                            title_font_shadow=True, title_font_color=(255, 247, 0), title_font=font, widget_font=font,
+                            widget_font_color=(180, 180, 180), widget_selection_effect=effect)
+
 def find_file(file):
     global ai
     ai = file
@@ -37,8 +43,8 @@ def back():
     title.menu.mainloop(surface)
 
 
-menu = pygame_menu.Menu(width, height, 'AI Selection',
-                        theme=pygame_menu.themes.THEME_DARK)
+menu = pygame_menu.Menu('AI Selection', height, width,
+                        theme=mytheme)
 
 menu.add.text_input('AI Play File: ', default='data/test.csv', onchange=find_file)
 menu.add.button('Play', start_the_game)

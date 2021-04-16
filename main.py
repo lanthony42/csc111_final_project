@@ -53,6 +53,6 @@ if __name__ == '__main__':
     t = time()
     # test_game()
     # test_ai()
-    test_train()
-    # title.menu.mainloop(title.surface)
+    # test_train()
+    title.menu.mainloop(title.surface)
     print(time() - t)
