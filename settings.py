@@ -6,7 +6,7 @@ from game_constants import SCREEN_SIZE
 height = SCREEN_SIZE[0]
 width = SCREEN_SIZE[1]
 
-seed = 111
+seed = 45
 debug_option = False
 
 pygame.init()
@@ -22,7 +22,7 @@ mytheme = pygame_menu.Theme(background_color=(0, 0, 0), title_background_color=(
 def set_seed(set):
     global seed
     if set == '':
-        seed = 111
+        seed = 45
     else:
         seed = int(set)
 def debug(value, option):
