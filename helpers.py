@@ -11,6 +11,10 @@ def within_grid(vector: Vector) -> bool:
     return 0 <= vector.x < const.GRID_SIZE.x and 0 <= vector.y < const.GRID_SIZE.y
 
 
+def clamp(number: float, min_val: float, max_val: float) -> float:
+    return max(min_val, min(max_val, number))
+
+
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={

@@ -37,7 +37,12 @@ class AIController(game_controls.Controller):
     def control(self, grid: list[list[int]]) -> None:
         directions = list(ai_const.DIRECTION_ROTATE)
 
-        dir_index = directions.index(self.actor.state.direction)
+        direct = self.actor.state.direction
+        if direct not in directions:
+            dir_index = 0
+        else:
+            dir_index = directions.index(direct)
+
         end_index = dir_index + len(directions) // 2
         directions = directions[dir_index: end_index]
 
@@ -148,6 +153,7 @@ class AIController(game_controls.Controller):
     def control_outputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
         net_int = [node.value for node in self.neural_net.output_nodes][:ai_const.OUTPUT_SIZE]
         max_value = max(net_int)
+        # print(net_int)
 
         if max_value >= ai_const.THRESHOLD:
             dir_index = net_int.index(max_value)

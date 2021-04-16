@@ -29,7 +29,7 @@ class Actor:
     _queued_direction: Optional[Vector]
     cornering: bool
 
-    def __init__(self, default_state: ActorState = ActorState(const.PLAYER_POS, const.PLAYER_DIR,
+    def __init__(self, default_state: ActorState = ActorState(const.PLAYER_POS, const.DEFAULT_DIR,
                                                               const.YELLOW, const.PLAYER_SPEED),
                  cornering: bool = True) -> None:
         self._default_state = default_state

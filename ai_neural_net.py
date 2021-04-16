@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Union
 import csv
+import random
 import scipy.special
-from math import sqrt
-from numpy import mean
-from numpy.random import rand
+
+from helpers import clamp
+import ai_constants as const
 
 
 class _WeightedVertex:
@@ -41,9 +42,8 @@ class _WeightedVertex:
 
         return out
 
-    def degree(self) -> int:
-        """Return the degree of this vertex."""
-        return len(self.neighbours)
+    def get_neighbor_numbers(self) -> set[int]:
+        return set(neighbor.item for neighbor in self.neighbours)
 
 
 class NeuralNetGraph:
@@ -53,60 +53,68 @@ class NeuralNetGraph:
 
     input_nodes: list[_WeightedVertex]
     output_nodes: list[_WeightedVertex]
-    curr_num: int
     fitness: int
 
-    def __init__(self, input_size: int, output_size: int) -> None:
-        """Initialize an empty graph (no vertices or edges)."""
+    def __init__(self, input_size: int, output_size: int, hidden_size: int = 1) -> None:
+        """Initialize a graph with given amount of each node types."""
         self._vertices = {}
 
         self.input_nodes = []
         self.output_nodes = []
-        self.curr_num = 0
         self.fitness = 0
 
         for _ in range(input_size):
             self.add_input_node()
 
+        hidden_nodes = []
+        for i in range(hidden_size):
+            hidden_nodes.append(self._vertices[self.add_hidden_node()])
+
+            for input_node in self.input_nodes:
+                hidden_nodes[i].neighbours[input_node] = random.uniform(-1, 1)
+
         for _ in range(output_size):
-            self.add_output_node()
+            vertex = self._vertices[self.add_output_node()]
+
+            for hidden_node in hidden_nodes:
+                vertex.neighbours[hidden_node] = random.uniform(-1, 1)
 
     def add_input_node(self) -> int:
         """Add an input node with the given number to this graph.
 
         The new input node is not adjacent to any other vertices.
         """
-        self.curr_num += 1
-        new_vertex = _WeightedVertex(self.curr_num, 'input')
+        num = len(self._vertices) + 1
+        new_vertex = _WeightedVertex(num, 'input')
 
-        self._vertices[self.curr_num] = new_vertex
+        self._vertices[num] = new_vertex
         self.input_nodes.append(new_vertex)
 
-        return self.curr_num
+        return num
 
     def add_hidden_node(self) -> int:
         """Add a hidden node with the given item to this graph.
 
         The new hidden node is not adjacent to any other vertices.
         """
-        self.curr_num += 1
-        new_vertex = _WeightedVertex(self.curr_num, 'hidden')
-        self._vertices[self.curr_num] = new_vertex
+        num = len(self._vertices) + 1
+        new_vertex = _WeightedVertex(num, 'hidden')
+        self._vertices[num] = new_vertex
 
-        return self.curr_num
+        return num
 
     def add_output_node(self) -> int:
         """Add an output node with the given item to this graph.
 
         The new output node is not adjacent to any other vertices.
         """
-        self.curr_num += 1
-        new_vertex = _WeightedVertex(self.curr_num, 'output')
+        num = len(self._vertices) + 1
+        new_vertex = _WeightedVertex(num, 'output')
 
-        self._vertices[self.curr_num] = new_vertex
+        self._vertices[num] = new_vertex
         self.output_nodes.append(new_vertex)
 
-        return self.curr_num
+        return num
 
     def add_edge(self, number1: int, number2: int, weight: Union[int, float] = 1) -> None:
         """Add an edge between the two vertices with the given numbers in this graph,
@@ -137,11 +145,13 @@ class NeuralNetGraph:
 
     def get_connections(self) -> list[tuple[int, int, float]]:
         out = []
-
         for node in self.output_nodes:
             out.extend(node.get_connections())
 
         return out
+
+    def get_hidden_count(self) -> int:
+        return len(self._vertices) - len(self.input_nodes) - len(self.output_nodes)
 
     def propagate_outputs(self) -> None:
         for node in self.output_nodes:
@@ -161,25 +171,30 @@ class NeuralNetGraph:
 
         curr_node.value = scipy.special.expit(value)
 
+    def get_mutated_child(self, best_fitness: float) -> NeuralNetGraph:
+        new_network = NeuralNetGraph(len(self.input_nodes), len(self.output_nodes),
+                                     self.get_hidden_count())
+        factor = 1 / (const.WEIGHT_CO - max(0, const.WEIGHT_OFFSET - \
+                                            best_fitness / const.FITNESS_CO))
+
+        for v1, v2, weight in self.get_connections():
+            if random.uniform(0, 1) < const.RANDOM_CHANCE:
+                weight = random.uniform(-1, 1)
+            else:
+                weight = clamp(weight + factor * random.gauss(0, 1), -1, 1)
+            new_network.add_edge(v1, v2, weight)
+
+        return new_network
+
 
 def load_neural_network(file_path: str) -> NeuralNetGraph:
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
-
         initial_sizes = next(reader)
-        connections = list(reader)
 
-        input_size = int(initial_sizes[0])
-        output_size = int(initial_sizes[1])
-        neural_net = NeuralNetGraph(input_size, output_size)
-
-        # Find and add all hidden layer nodes
-        hidden_count = len(set(connect[0] for connect in connections
-                               if int(connect[0]) > input_size + output_size))
-        for _ in range(hidden_count):
-            neural_net.add_hidden_node()
-
-        for connection in connections:
+        neural_net = NeuralNetGraph(int(initial_sizes[0]), int(initial_sizes[1]),
+                                    int(initial_sizes[2]))
+        for connection in reader:
             neural_net.add_edge(int(connection[0]), int(connection[1]), float(connection[2]))
 
         return neural_net
@@ -188,55 +203,16 @@ def load_neural_network(file_path: str) -> NeuralNetGraph:
 def save_neural_network(neural_net: NeuralNetGraph, file_path: str) -> None:
     with open(file_path, 'w+', newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
-        connections = [(len(neural_net.input_nodes), len(neural_net.output_nodes))]
+        connections = [(len(neural_net.input_nodes), len(neural_net.output_nodes),
+                        neural_net.get_hidden_count())]
 
         writer.writerows(connections + neural_net.get_connections())
-
-
-def create_neural_network(size_l: list[int]) -> tuple[NeuralNetGraph, list]:
-    """Creates a graph for the neural network,
-    size_l is a list containing the sizes of each layer"""
-    new_graph = NeuralNetGraph(size_l[0], size_l[-1])
-    layers = [[node.number for node in new_graph.input_nodes]]
-    initial_num = size_l[0] + size_l[-1]
-
-    for i in range(1, len(size_l) - 1):
-        layers.append([num for num in range(initial_num + 1, initial_num + size_l[i] + 1)])
-        initial_num = max(layers[-1])
-
-    layers.append([node.number for node in new_graph.output_nodes])
-
-    weights_list = []
-
-    for i in range(1, len(size_l) - 1):
-        n1 = size_l[i - 1]
-        n2 = size_l[i]
-        lower, upper = -(1.0 / sqrt(n1)), (1.0 / sqrt(n1))
-        weights = rand(n2, n1)
-        weights_list.append(weights)
-
-        for num2 in range(0, n2):
-            new_graph.add_hidden_node()
-            for num1 in range(0, n1):
-                new_graph.add_edge(layers[i][num2], layers[i - 1][num1], weights[num2][num1])
-
-    n3 = size_l[-2]
-    n4 = size_l[-1]
-    lower, upper = -(1.0 / sqrt(n3)), (1.0 / sqrt(n3))
-    weights = rand(n4, n3)
-    weights_list.append(weights)
-
-    for num4 in range(0, n4):
-        for num3 in range(0, n3):
-            new_graph.add_edge(layers[-1][num4], layers[-2][num3], weights[num4][num3])
-
-    return (new_graph, weights_list[::-1])
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
-        'extra-imports': ['csv', 'scipy.special'],
+        'extra-imports': ['csv', 'random', 'scipy.special', 'ai_constants', 'helpers'],
         'allowed-io': ['load_neural_network', 'save_neural_network'],
         'max-line-length': 100,
         'disable': ['E1136', 'E1101']

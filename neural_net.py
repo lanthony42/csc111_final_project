@@ -155,6 +155,46 @@ def create_neural_network2(inputs: List[Union[int, float]], l: int, size_l: List
             new_graph.add_edge(inputs[num], hidden_output[hidden_node][0], w1[hidden_node][num])
 
 
+def create_neural_network(size_l: list[int]) -> tuple[NeuralNetGraph, list]:
+    """Creates a graph for the neural network,
+    size_l is a list containing the sizes of each layer"""
+    new_graph = NeuralNetGraph(size_l[0], size_l[-1])
+    layers = [[node.number for node in new_graph.input_nodes]]
+    initial_num = size_l[0] + size_l[-1]
+
+    for i in range(1, len(size_l) - 1):
+        layers.append([num for num in range(initial_num + 1, initial_num + size_l[i] + 1)])
+        initial_num = max(layers[-1])
+
+    layers.append([node.number for node in new_graph.output_nodes])
+
+    weights_list = []
+
+    for i in range(1, len(size_l) - 1):
+        n1 = size_l[i - 1]
+        n2 = size_l[i]
+        lower, upper = -(1.0 / sqrt(n1)), (1.0 / sqrt(n1))
+        weights = rand(n2, n1)
+        weights_list.append(weights)
+
+        for num2 in range(0, n2):
+            new_graph.add_hidden_node()
+            for num1 in range(0, n1):
+                new_graph.add_edge(layers[i][num2], layers[i - 1][num1], weights[num2][num1])
+
+    n3 = size_l[-2]
+    n4 = size_l[-1]
+    lower, upper = -(1.0 / sqrt(n3)), (1.0 / sqrt(n3))
+    weights = rand(n4, n3)
+    weights_list.append(weights)
+
+    for num4 in range(0, n4):
+        for num3 in range(0, n3):
+            new_graph.add_edge(layers[-1][num4], layers[-2][num3], weights[num4][num3])
+
+    return (new_graph, weights_list[::-1])
+
+
 
 
 

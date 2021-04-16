@@ -44,7 +44,7 @@ class Game:
         has_boosts = config.get('has_boosts', True)
         is_visual = config.get('is_visual', True)
         is_debug = config.get('is_debug', False)
-        random.seed(seed)
+        #random.seed(seed)
 
         # Reinitialize
         self.state = GameState(lives)
