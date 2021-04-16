@@ -35,7 +35,7 @@ def back():
 menu = pygame_menu.Menu('Settings', height, width,
                         theme=mytheme)
 
-menu.add.text_input('Set Seed (Int):', default='111', onchange=set_seed)
+menu.add.text_input('Set Seed (Int):', default='45', onchange=set_seed)
 menu.add.selector('Debug: ', [('OFF', False), ('ON', True)], onchange=debug)
 menu.add.button('Back', back)
 menu.add.button('Quit', pygame_menu.events.EXIT)
