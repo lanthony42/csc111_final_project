@@ -128,10 +128,6 @@ class AITrainer:
                 break
             parent.add_subtree(neural_net)
 
-            if self.ai_tree.best_descendant.fitness > 1600 and \
-                    self.training_stage > const.GHOST_STAGE:
-                break
-
         if graph_path is not None:
             save_neural_network(self.ai_tree.best_descendant, graph_path)
 
@@ -148,7 +144,7 @@ class AITrainer:
                 outcome['score'] >= const.SCORE_THRESHOLD[self.training_stage]:
             self.training_stage += 1
 
-        self.has_won = self.has_won or outcome['game_win']
+        self.has_won = outcome['game_win'] and self.training_stage >= const.BOOST_STAGE
         network.fitness = self.fitness(**outcome)
         print(network.fitness)
         print(outcome)
