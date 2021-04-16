@@ -42,17 +42,29 @@ class AIController(game_controls.Controller):
         directions = directions[dir_index: end_index]
 
         # Propagate through neural network
-        self.get_inputs(grid, directions)
-        self.neural_net.propagate_outputs()
-        self.control_outputs(grid, directions)
+        if self.is_check_neural_net(grid, directions):
+            self.get_inputs(grid, directions)
+            self.neural_net.propagate_outputs()
+            self.control_outputs(grid, directions)
 
         # Checks if player has been inactive
         self.ticks_alive += 1
+        timeout = (ai_const.POINT_TIMEOUT - max(0, (ai_const.POINT_OFFSET - self.game.score) // 10))
 
         if self.game.score != self.last_score[0]:
             self.last_score = (self.game.score, self.ticks_alive)
-        elif self.ticks_alive - self.last_score[1] > ai_const.POINT_TIMEOUT:
+        elif self.ticks_alive - self.last_score[1] > timeout:
             self.game.lives = 0
+
+    def is_check_neural_net(self, grid: list[list[int]], directions: list[Vector]) -> bool:
+        tile = self.actor.tile()
+        left_tile = tile + directions[1]
+        right_tile = tile + directions[-1]
+
+        can_left = grid[left_tile.y][left_tile.x] not in g_const.BAD_TILES
+        can_right = grid[right_tile.y][right_tile.x] not in g_const.BAD_TILES
+
+        return can_left or can_right
 
     def get_inputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
         inputs = []
@@ -97,7 +109,7 @@ class AIController(game_controls.Controller):
         inputs.append(ai_const.ACTIVE)
 
         # Place input into input nodes
-        for node, value in zip(self.neural_net.input_nodes, inputs):
+        for node, value in zip(self.neural_net.input_nodes, inputs[:ai_const.INPUT_SIZE]):
             node.value = value
 
     def a_star_distance(self, grid: list[list[int]], targets: list[Vector],
@@ -134,12 +146,12 @@ class AIController(game_controls.Controller):
         return min(grid_distance(position, target) for target in targets)
 
     def control_outputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
-        net_int = [node.value for node in self.neural_net.output_nodes]
+        net_int = [node.value for node in self.neural_net.output_nodes][:ai_const.OUTPUT_SIZE]
         max_value = max(net_int)
 
         if max_value >= ai_const.THRESHOLD:
             dir_index = net_int.index(max_value)
-            self.actor.change_direction(grid, directions[dir_index])
+            self.actor.change_direction(grid, directions[dir_index + 1])
 
     def reset(self) -> None:
         self.last_score = (self.game.score, self.ticks_alive)

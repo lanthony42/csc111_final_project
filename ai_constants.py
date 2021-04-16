@@ -3,6 +3,7 @@ import game_constants as g_const
 
 DIRECTION_ROTATE = tuple(g_const.DIRECTION[direction] for direction in g_const.DIRECTION_ORDER * 2)
 POINT_TIMEOUT = 15 * g_const.FPS
+POINT_OFFSET = 125 * g_const.FPS
 
 # Neural Network Constants
 ACTIVE = 1.0
@@ -11,7 +12,7 @@ DOTS_BIAS = 8
 THRESHOLD = 0.8
 
 INPUT_SIZE = 14
-OUTPUT_SIZE = 4
+OUTPUT_SIZE = 3
 
 # Training Constants
 WIN_WEIGHT = 4000.0
