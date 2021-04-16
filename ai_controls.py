@@ -153,9 +153,8 @@ class AIController(game_controls.Controller):
     def control_outputs(self, grid: list[list[int]], directions: list[Vector]) -> None:
         net_int = [node.value for node in self.neural_net.output_nodes][:ai_const.OUTPUT_SIZE]
         max_value = max(net_int)
-        # print(net_int)
 
-        if max_value >= ai_const.THRESHOLD:
+        if max_value >= ai_const.MOVE_THRESHOLD:
             dir_index = net_int.index(max_value)
             self.actor.change_direction(grid, directions[dir_index + 1])
 
