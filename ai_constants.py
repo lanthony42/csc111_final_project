@@ -1,11 +1,16 @@
+"""CSC111 Final Project
+
+Module with constants relevant to AI, to be used in other modules.
+"""
 import game_constants as g_const
 
 
+# Neural Network Input Constants
 DIRECTION_ROTATE = tuple(g_const.DIRECTION[direction] for direction in g_const.DIRECTION_ORDER * 2)
 POINT_TIMEOUT = 15 * g_const.FPS
 POINT_OFFSET = 125 * g_const.FPS
 
-# Neural Network Constants
+# General Neural Network Constants
 ACTIVE = 1.0
 INACTIVE = 0.0
 DOTS_BIAS = 8
@@ -51,7 +56,7 @@ if __name__ == '__main__':
     })
 
     import python_ta.contracts
-    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.DEBUG_CONTRACTS = False
     python_ta.contracts.check_all_contracts()
 
     import doctest
