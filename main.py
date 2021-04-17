@@ -18,5 +18,4 @@ if __name__ == '__main__':
     else:
         # Trains without visualization
         trainer = ai_trainer.AITrainer()
-        trainer.start_training(input_path='data/test.csv', output_path='data/new.csv',
-                               is_visual=False)
+        trainer.start_training(output_path='data/new.csv', is_visual=False)

@@ -3,7 +3,6 @@
 Creates a pygame-menu GUI in which users can interact with the Pac-Man AI Program.
 Users may play Pac-Man, observe an AI play Pac-Man, or observe an AI train.
 """
-
 from dataclasses import dataclass
 from typing import Optional
 import pygame
@@ -19,17 +18,30 @@ import game_runner
 
 @dataclass
 class UserSettings:
-    """
-    Settings and variables that are affected by user input.
+    """Settings and variables that are affected by user input.
+
+    Instance Attributes:
+        - high_score: The high score for this current run of the program.
+        - seed: The seed to be set for each AI played game.
+        - is_debug: Whether or not to draw debug information.
     """
     high_score: int
-    seed: int
+    seed: Optional[int]
     is_debug: bool
 
 
 class UserInterface:
-    """
-    An instance of a pygame-menu and each associated widget along with their associated methods.
+    """An instance of a pygame_menu menu and each associated widget along with their
+    associated methods.
+
+    Instance Attributes:
+        - screen: The pygame screen to be used for the menu.
+        - game: The game to be used to run or play games.
+        - trainer: The AI trainer used to train neural networks.
+        - theme: The menu's and submenu's visual theme.
+        - main_menu: The main menu object which is the first menu displayed.
+        - main_menu: The secondary menu object which sets specific settings.
+        - settings: The user's settings for the program.
     """
     screen: pygame.Surface
     game: game_runner.Game
@@ -40,6 +52,7 @@ class UserInterface:
     settings: UserSettings
 
     def __init__(self) -> None:
+        """Initializes a user interface object. """
         self.settings = UserSettings(0, ai_const.SIMULATION_SEED, False)
         self.game = game_runner.Game('data/map.csv')
         self.trainer = ai_trainer.AITrainer()
@@ -59,8 +72,8 @@ class UserInterface:
         self.sub_menu = None
 
     def open_menu(self) -> None:
-        """
-        Opens the main menu of the Pac-Man AI Program after creating the associated widgets.
+        """Opens the main menu of the Pac-Man AI Program after creating the
+        associated widgets.
         """
         self.main_menu = pygame_menu.Menu('PAC-MAN', g_const.SCREEN_SIZE[0], g_const.SCREEN_SIZE[1],
                                           theme=self.theme)
@@ -77,8 +90,8 @@ class UserInterface:
         self.main_menu.mainloop(self.screen)
 
     def play_game(self) -> None:
-        """
-        Triggered by pressing the 'Play' button of the Main Menu.
+        """Triggered by pressing the 'Play' button of the Main Menu.
+
         This function starts the Pac-Man game that the user can then play.
         """
         outcome = self.game.run(config={'is_debug': self.settings.is_debug})
@@ -89,8 +102,8 @@ class UserInterface:
         self.open_menu()
 
     def ai_play_menu(self) -> None:
-        """
-        Opens the AI Play menu of the Pac-Man AI Program after creating the associated widgets.
+        """Opens the AI Play menu of the Pac-Man AI Program after creating the
+        associated widgets.
         """
         self.sub_menu = pygame_menu.Menu('AI Selection', g_const.SCREEN_SIZE[0],
                                          g_const.SCREEN_SIZE[1], theme=self.theme)
@@ -103,8 +116,8 @@ class UserInterface:
         self.sub_menu.mainloop(self.screen)
 
     def ai_play_game(self) -> None:
-        """
-        Triggered by pressing the 'Play' button of the AI Play Menu.
+        """Triggered by pressing the 'Play' button of the AI Play Menu.
+
         This function has the AI specified by the path in AI Play File play the game.
         """
         path = self.sub_menu.get_input_data()['path']
@@ -117,8 +130,8 @@ class UserInterface:
             self.settings.high_score = outcome['score']
 
     def ai_train_menu(self) -> None:
-        """
-        Opens the AI Train menu of the Pac-Man AI Program after creating the associated widgets.
+        """Opens the AI Train menu of the Pac-Man AI Program after creating the
+        associated widgets.
         """
         self.sub_menu = pygame_menu.Menu('AI Selection', g_const.SCREEN_SIZE[0],
                                          g_const.SCREEN_SIZE[1], theme=self.theme)
@@ -132,8 +145,8 @@ class UserInterface:
         self.sub_menu.mainloop(self.screen)
 
     def ai_train_game(self) -> None:
-        """
-        Triggered by pressing the 'Play' button of the AI Train Menu.
+        """Triggered by pressing the 'Play' button of the AI Train Menu.
+
         This function has the AI specified by the path in AI Play File train.
         After training is done, changes to the AI are saved at the path specified AI Train File.
         """
@@ -142,8 +155,8 @@ class UserInterface:
                                     is_visual=True)
 
     def settings_menu(self) -> None:
-        """
-        Opens the settings menu of the Pac-Man AI Program after creating the associated widgets
+        """Opens the settings menu of the Pac-Man AI Program after creating the
+        associated widgets.
         """
         self.sub_menu = pygame_menu.Menu('Settings', g_const.SCREEN_SIZE[0], g_const.SCREEN_SIZE[1],
                                          theme=self.theme)
@@ -158,9 +171,12 @@ class UserInterface:
         self.sub_menu.mainloop(self.screen)
 
     def set_seed(self, seed: str) -> None:
-        """
-        Triggered by inputting text into the Set Seed field of the Settings Menu.
+        """Triggered by inputting text into the Set Seed field of the Settings Menu.
+
         This function alters the seed that influences the ghost and AI behaviour in the game.
+
+        Args:
+            - seed: The random seed to be set, used for ensuring replicability for AI playing.
         """
         if seed.isdigit():
             self.settings.seed = int(seed)
@@ -168,11 +184,17 @@ class UserInterface:
             self.settings.seed = ai_const.SIMULATION_SEED
 
     def set_debug(self, *args) -> None:
-        """
-        Triggered by interacting with the Debug Selector in the Settings Menu.
+        """Triggered by interacting with the Debug Selector in the Settings Menu.
+
         This function toggles the is_debug variable allowing users to enter debug mode in the game.
+
+        Preconditions:
+            - len(args) >= 1 and type(args[1]) == bool
+
+        Args:
+            - args: The selected option, where args[1] is its bool representation.
         """
-        self.settings.is_debug = bool(args[1])
+        self.settings.is_debug = args[1]
 
 
 if __name__ == '__main__':
@@ -185,7 +207,7 @@ if __name__ == '__main__':
     })
 
     import python_ta.contracts
-    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.DEBUG_CONTRACTS = False
     python_ta.contracts.check_all_contracts()
 
     import doctest
