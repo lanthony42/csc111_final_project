@@ -120,6 +120,8 @@ class AITrainer:
     def start_training(self, input_path: Optional[str] = None, output_path: Optional[str] = None,
                        starting_stage: int = const.GHOST_STAGE, is_visual: bool = False) -> None:
         self.training_stage = starting_stage
+        self.best_fitness = (0.0, 0)
+        self.rolling_avg = []
         self.has_won = False
 
         # Initialize AI Tree
