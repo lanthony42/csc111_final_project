@@ -6,7 +6,7 @@ from vector import Vector
 import game_constants as const
 
 
-def grid_distance(position: Vector, target: Vector) -> int:
+def grid_distance(position: Vector, target: Vector) -> float:
     """Returns the the grid distance from the position to target vectors.
 
     Args:
