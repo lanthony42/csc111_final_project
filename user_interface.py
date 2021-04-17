@@ -1,4 +1,5 @@
-"""
+"""CSC111 Final Project
+
 Creates a pygame-menu GUI in which users can interact with the Pac-Man AI Program.
 Users may play Pac-Man, observe an AI play Pac-Man, or observe an AI train.
 """
