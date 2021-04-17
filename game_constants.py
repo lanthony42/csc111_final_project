@@ -1,3 +1,7 @@
+"""CSC111 Final Project
+
+Module with constants relevant to the Pac-Man game, to be used in other modules.
+"""
 import pygame
 from vector import Vector
 
@@ -58,7 +62,7 @@ DOOR = '8'
 OUT = '9'
 BAD_TILES = {WALL, DOOR, OUT}
 
-# Round Timings
+# Round Timing Constants
 BOOST_TIME = 6 * FPS
 GHOST_RELEASE = 5.5 * FPS
 ROUND_START = 2 * FPS
@@ -78,7 +82,7 @@ if __name__ == '__main__':
     })
 
     import python_ta.contracts
-    python_ta.contracts.DEBUG_CONTRACTS = True
+    python_ta.contracts.DEBUG_CONTRACTS = False
     python_ta.contracts.check_all_contracts()
 
     import doctest
